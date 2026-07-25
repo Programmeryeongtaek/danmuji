@@ -44,6 +44,7 @@ export const MOCK_SAYINGS: Saying[] = [
     content: "시간을 지배하는 자가 인생을 지배한다.",
     source_person: "벤저민 프랭클린",
     tags: ["시간관리"],
+    context: null,
     created_at: "2026-07-18T09:00:00Z",
   },
 ];

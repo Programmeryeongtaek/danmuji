@@ -22,8 +22,9 @@ export interface Thought {
 export interface Saying {
   id: string;
   record_type: 'saying';
+  content: string;
   source_person: string;
-  content: string | null;
+  context: string | null;
   tags: string[];
   created_at: string;
 }
