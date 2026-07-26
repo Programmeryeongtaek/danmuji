@@ -1,5 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
-import { RecordItem } from '@/types/Record';
+import { RecordItem } from '@/types/record';
 
 export async function fetchRecordsFeed(): Promise<RecordItem[]> {
   const { data, error } = await supabase

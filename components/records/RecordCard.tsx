@@ -1,4 +1,4 @@
-import { RecordItem } from '@/types/Record';
+import { RecordItem } from '@/types/record';
 
 const TYPE_LABEL: Record<RecordItem['record_type'], string> = {
   quote: '문장',

@@ -1,4 +1,4 @@
-import { RecordTab, RecordTabKey } from '@/types/Record';
+import { RecordTab, RecordTabKey } from '@/types/record';
 
 const TABS: RecordTab[] = [
   { key: 'all', label: '전체' },

@@ -72,3 +72,12 @@ create policy "user can manage own sayings"
   on sayings for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+--
+--   -- 로그인 기능 해제
+-- alter table quotes alter column user_id drop not null;
+-- alter table thoughts alter column user_id drop not null;
+-- alter table sayings alter column user_id drop not null;
+
+-- alter table quotes disable row level security;
+-- alter table thoughts disable row level security;
+-- alter table sayings disable row level security;
