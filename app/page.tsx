@@ -1,7 +1,7 @@
 // TODO: 아래 더미 데이터는 이후 useNewsSummaries / useThoughts / useBookSummaries
 
 import { SummaryCardView } from '@/components/SummaryCard';
-import { SummaryCard } from '@/types/Dashboard';
+import { SummaryCard } from '@/types/dashboard';
 
 // (TanStack Query + Supabase) 훅으로 교체합니다.
 const CARDS: SummaryCard[] = [

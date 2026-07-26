@@ -1,8 +1,8 @@
-export type RecordType = 'quote' | 'thought' | 'saying';
+export type RecordType = "quote" | "thought" | "saying";
 
 export interface Quote {
   id: string;
-  record_type: 'quote';
+  record_type: "quote";
   content: string;
   book_title: string;
   author: string;
@@ -13,7 +13,7 @@ export interface Quote {
 
 export interface Thought {
   id: string;
-  record_type: 'thought';
+  record_type: "thought";
   content: string;
   tags: string[];
   created_at: string;
@@ -21,7 +21,7 @@ export interface Thought {
 
 export interface Saying {
   id: string;
-  record_type: 'saying';
+  record_type: "saying";
   content: string;
   source_person: string;
   context: string | null;
@@ -31,7 +31,12 @@ export interface Saying {
 
 export type RecordItem = Quote | Thought | Saying;
 
-export type RecordTabKey = 'all' | 'quote' | 'thought' | 'saying';
+export type RecordDraft =
+  | Omit<Quote, "id" | "created_at">
+  | Omit<Thought, "id" | "created_at">
+  | Omit<Saying, "id" | "created_at">;
+
+export type RecordTabKey = "all" | "quote" | "thought" | "saying";
 
 export interface RecordTab {
   key: RecordTabKey;

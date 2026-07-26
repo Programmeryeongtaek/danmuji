@@ -9,22 +9,35 @@ import {
 } from '@/components/records/RecordFormAtoms';
 import { RecordFormModal } from '@/components/records/RecordFormModal';
 import { RecordTabs } from '@/components/records/RecordTabs';
-import { getMockRecordsFeed } from '@/mock/Records';
+import { useCreateQuote, useDeleteQuote } from '@/entities/quote/hook';
+import { recordFeedKeys, useRecordsFeed } from '@/entities/record/hook';
+import { useCreateSaying, useDeleteSaying } from '@/entities/saying/hook';
+import { useCreateThought, useDeleteThought } from '@/entities/thought/hook';
 import { selectedRecordAtom } from '@/shared/atoms/recordModalAtoms';
-import { RecordItem } from '@/types/Record';
+import { RecordDraft, RecordItem } from '@/types/record';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useSetAtom } from 'jotai';
 import { Plus, Search } from 'lucide-react';
-import { useState } from 'react';
-
-// TODO: Supabase 연동 시 getMockRecordsFeed() 대신 useRecordsFeed() (records_feed 뷰 조회)로 교체
-// useState 대신 TanStack Query의 mutation 사용
 
 export default function RecordsPage() {
-  const [records, setRecords] = useState<RecordItem[]>(getMockRecordsFeed());
+  const queryClient = useQueryClient();
+  const { data: records = [], isLoading, isError } = useRecordsFeed();
+
   const [activeTab, setActiveTab] = useAtom(activeRecordTabAtom);
   const [selectedRecord, setSelectedRecord] = useAtom(selectedRecordAtom);
   const setIsFormOpen = useSetAtom(isRecordFormOpenAtom);
   const setFormType = useSetAtom(recordFormTypeAtom);
+
+  const createQuote = useCreateQuote();
+  const createThought = useCreateThought();
+  const createSaying = useCreateSaying();
+
+  const deleteQuote = useDeleteQuote();
+  const deleteThought = useDeleteThought();
+  const deleteSaying = useDeleteSaying();
+
+  const isSubmitting =
+    createQuote.isPending || createThought.isPending || createSaying.isPending;
 
   const filteredRecords: RecordItem[] =
     activeTab === 'all'
@@ -38,8 +51,40 @@ export default function RecordsPage() {
     setIsFormOpen(true);
   };
 
-  const handleCreateRecord = (record: RecordItem) => {
-    setRecords((prev) => [record, ...prev]);
+  // records_feed 뷰는 별도 쿼리 키로 캐싱되어 있어서, 각 타입 테이블에
+  // insert/delete가 성공한 뒤 recordFeedKeys도 같이 무효화해줍니다.
+  const invalidateFeed = () => {
+    queryClient.invalidateQueries({ queryKey: recordFeedKeys.all });
+  };
+
+  const handleCreateRecord = (draft: RecordDraft) => {
+    const onSuccess = () => {
+      invalidateFeed();
+      setIsFormOpen(false);
+    };
+
+    if (draft.record_type === 'quote') {
+      createQuote.mutate(draft, { onSuccess });
+    } else if (draft.record_type === 'saying') {
+      createSaying.mutate(draft, { onSuccess });
+    } else {
+      createThought.mutate(draft, { onSuccess });
+    }
+  };
+
+  const handleDeleteRecord = (record: RecordItem) => {
+    const onSuccess = () => {
+      invalidateFeed();
+      setSelectedRecord(null);
+    };
+
+    if (record.record_type === 'quote') {
+      deleteQuote.mutate(record.id, { onSuccess });
+    } else if (record.record_type === 'saying') {
+      deleteSaying.mutate(record.id, { onSuccess });
+    } else {
+      deleteThought.mutate(record.id, { onSuccess });
+    }
   };
 
   return (
@@ -62,6 +107,24 @@ export default function RecordsPage() {
         </span>
       </div>
 
+      {isLoading && (
+        <p className="py-8 text-center text-[13px] text-neutral-400">
+          불러오는 중...
+        </p>
+      )}
+
+      {isError && (
+        <p className="py-8 text-center text-[13px] text-red-500">
+          기록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+        </p>
+      )}
+
+      {!isLoading && !isError && filteredRecords.length === 0 && (
+        <p className="py-8 text-center text-[13px] text-neutral-400">
+          아직 기록이 없어요. 첫 기록을 추가해보세요.
+        </p>
+      )}
+
       <div className="flex flex-col gap-2.5">
         {filteredRecords.map((record) => (
           <RecordCard
@@ -75,8 +138,12 @@ export default function RecordsPage() {
       <RecordDetailModal
         record={selectedRecord}
         onClose={() => setSelectedRecord(null)}
+        onDelete={handleDeleteRecord}
       />
-      <RecordFormModal onSubmit={handleCreateRecord} />
+      <RecordFormModal
+        onSubmit={handleCreateRecord}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

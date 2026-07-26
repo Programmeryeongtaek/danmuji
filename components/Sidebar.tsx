@@ -1,6 +1,6 @@
 'use client';
 
-import { NavItem, NavItemKey } from '@/types/Dashboard';
+import { NavItem, NavItemKey } from '@/types/dashboard';
 import { BarChart3, Home, NotebookText, PencilLine } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';

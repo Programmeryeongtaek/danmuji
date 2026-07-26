@@ -1,6 +1,6 @@
 'use client';
 
-import { RecordItem } from '@/types/Record';
+import { RecordItem } from '@/types/record';
 import { X } from 'lucide-react';
 
 function getSubtitle(record: RecordItem): string {
@@ -19,9 +19,14 @@ function getSubtitle(record: RecordItem): string {
 interface RecordDetailModalProps {
   record: RecordItem | null;
   onClose: () => void;
+  onDelete: (record: RecordItem) => void;
 }
 
-export function RecordDetailModal({ record, onClose }: RecordDetailModalProps) {
+export function RecordDetailModal({
+  record,
+  onClose,
+  onDelete,
+}: RecordDetailModalProps) {
   if (!record) return null;
 
   const isQuoteLike =
@@ -69,7 +74,14 @@ export function RecordDetailModal({ record, onClose }: RecordDetailModalProps) {
           <button className="rounded-md border border-neutral-300 px-3 py-1.5 text-[12.5px] dark:border-neutral-700">
             수정
           </button>
-          <button className="rounded-md border border-neutral-300 px-3 py-1.5 text-[12.5px] dark:border-neutral-700">
+          <button
+            onClick={() => {
+              if (window.confirm('이 기록을 삭제하시겠어요?')) {
+                onDelete(record);
+              }
+            }}
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-[12.5px] dark:border-neutral-700"
+          >
             삭제
           </button>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { RecordItem, RecordType } from '@/types/Record';
+import { RecordDraft, RecordType } from '@/types/record';
 import { useAtom } from 'jotai';
 import { X } from 'lucide-react';
 import { useState } from 'react';
@@ -20,10 +20,14 @@ function parseTags(tagsInput: string): string[] {
 }
 
 interface RecordFormModalProps {
-  onSubmit: (record: RecordItem) => void;
+  onSubmit: (draft: RecordDraft) => void;
+  isSubmitting?: boolean;
 }
 
-export function RecordFormModal({ onSubmit }: RecordFormModalProps) {
+export function RecordFormModal({
+  onSubmit,
+  isSubmitting = false,
+}: RecordFormModalProps) {
   const [isOpen, setIsOpen] = useAtom(isRecordFormOpenAtom);
   const [formType, setFormType] = useAtom(recordFormTypeAtom);
 
@@ -61,15 +65,13 @@ export function RecordFormModal({ onSubmit }: RecordFormModalProps) {
     if (!isValid) return;
 
     const base = {
-      id: crypto.randomUUID(),
       content: content.trim(),
       tags: parseTags(tagsInput),
-      created_at: new Date().toISOString(),
     };
 
-    let record: RecordItem;
+    let draft: RecordDraft;
     if (formType === 'quote') {
-      record = {
+      draft = {
         ...base,
         record_type: 'quote',
         book_title: bookTitle.trim(),
@@ -77,19 +79,18 @@ export function RecordFormModal({ onSubmit }: RecordFormModalProps) {
         page_number: pageNumber ? Number(pageNumber) : null,
       };
     } else if (formType === 'saying') {
-      record = {
+      draft = {
         ...base,
         record_type: 'saying',
         source_person: sourcePerson.trim(),
         context: context.trim() || null,
       };
     } else {
-      record = { ...base, record_type: 'thought' };
+      draft = { ...base, record_type: 'thought' };
     }
 
-    onSubmit(record);
+    onSubmit(draft);
     resetForm();
-    setIsOpen(false);
   };
 
   return (
@@ -194,10 +195,10 @@ export function RecordFormModal({ onSubmit }: RecordFormModalProps) {
           </button>
           <button
             onClick={handleSave}
-            disabled={!isValid}
+            disabled={!isValid || isSubmitting}
             className="rounded-md bg-amber-600 px-3 py-1.5 text-[12.5px] text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-amber-700"
           >
-            저장
+            {isSubmitting ? '저장 중...' : '저장'}
           </button>
         </div>
       </div>

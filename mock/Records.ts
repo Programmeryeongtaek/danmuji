@@ -1,4 +1,4 @@
-import type { Quote, Thought, Saying, RecordItem } from "@/types/Record";
+import type { Quote, Thought, Saying, RecordItem } from "@/types/record";
 
 // TODO: Supabase 연동 시 이 파일 대신 entities/quote, entities/thought,
 // entities/saying 의 useQuotes / useThoughts / useSayings 훅으로 교체합니다.
