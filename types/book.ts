@@ -8,6 +8,8 @@ export interface Book {
   summary: string;
   status: BookStatus;
   tags: string[] | null;
+  isbn: string | null;
+  cover_url: string | null;
   created_at: string;
 }
 
@@ -20,10 +22,17 @@ export interface BookChapter {
   created_at: string;
 }
 
-export type RelatedItemType = 'chapter' | 'keyword' | 'news' | 'etf';
+export type RelatedItemType = "chapter" | "keyword" | "news" | "etf";
 
 export interface RelatedItem {
   type: RelatedItemType;
   id: string;
   title: string;
 }
+
+export type BookFormValues = Pick<
+  Book,
+  "title" | "author" | "summary" | "status" | "tags" | "isbn" | "cover_url"
+>;
+
+export type ChapterFormValues = Pick<BookChapter, "chapter_order" | "title" | "content">;

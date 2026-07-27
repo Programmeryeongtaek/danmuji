@@ -13,9 +13,20 @@ export function ChapterList({ bookId }: { bookId: string }) {
 
   return (
     <div>
-      <p className="font-serif text-xl mb-1">{book?.title}</p>
-      <p className="text-xs text-neutral-500 mb-6">{book?.author}</p>
-      <div className="space-y-1">
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <p className="font-serif text-xl mb-1">{book?.title}</p>
+          <p className="text-xs text-neutral-500">{book?.author}</p>
+        </div>
+        <Link
+          href={`/economy/books/${bookId}/edit`}
+          className="text-xs text-neutral-400"
+        >
+          정보 수정
+        </Link>
+      </div>
+
+      <div className="space-y-1 mb-4">
         {chapters?.map((chapter) => (
           <Link
             key={chapter.id}
@@ -26,6 +37,13 @@ export function ChapterList({ bookId }: { bookId: string }) {
           </Link>
         ))}
       </div>
+
+      <Link
+        href={`/economy/books/${bookId}/chapters/new`}
+        className="text-sm text-amber-700"
+      >
+        + 추가
+      </Link>
     </div>
   );
 }

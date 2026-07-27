@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchChapterById, fetchChaptersByBookId, fetchRelatedItems } from './api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createChapter, deleteChapter, fetchChapterById, fetchChaptersByBookId, fetchRelatedItems, updateChapter } from './api';
+import { ChapterFormValues } from '@/types/book';
 
 const chapterKeys = {
   byBook: (bookId: string) => ['chapters', 'book', bookId] as const,
@@ -28,5 +29,36 @@ export function useRelatedItems(chapterId: string) {
     queryKey: chapterKeys.related(chapterId),
     queryFn: () => fetchRelatedItems(chapterId),
     enabled: !!chapterId,
+  });
+}
+
+export function useCreateChapter(bookId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ChapterFormValues) => createChapter(bookId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: chapterKeys.byBook(bookId) });
+    },
+  });
+}
+
+export function useUpdateChapter(chapterId: string, bookId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Partial<ChapterFormValues>) => updateChapter(chapterId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: chapterKeys.detail(chapterId) });
+      queryClient.invalidateQueries({ queryKey: chapterKeys.byBook(bookId) });
+    },
+  });
+}
+
+export function useDeleteChapter(bookId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteChapter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: chapterKeys.byBook(bookId) });
+    },
   });
 }
