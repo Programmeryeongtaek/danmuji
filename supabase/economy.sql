@@ -45,3 +45,19 @@ add constraint book_chapters_book_id_fkey
 alter table book_summaries disable row level security;
 alter table book_chapters disable row level security;
 alter table content_links disable row level security;
+
+------ 블로그 3번째 개발일지
+create table economic_keywords (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users,
+  term text not null,
+  definition text not null,
+  status text check (status in ('new', 'review', 'done')) default 'new',
+  category text,
+  created_at timestamptz default now()
+);
+
+alter table economic_keywords disable row level security;
+
+alter table content_links
+  add column relation_kind text check (relation_kind in ('related', 'prerequisite', 'derived'));

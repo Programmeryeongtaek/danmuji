@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createChapter, deleteChapter, fetchChapterById, fetchChaptersByBookId, fetchRelatedItems, updateChapter } from './api';
+import { createChapter, deleteChapter, fetchChapterById, fetchChaptersByBookId, updateChapter } from './api';
 import { ChapterFormValues } from '@/types/book';
 
 const chapterKeys = {
@@ -20,14 +20,6 @@ export function useChapter(chapterId: string) {
   return useQuery({
     queryKey: chapterKeys.detail(chapterId),
     queryFn: () => fetchChapterById(chapterId),
-    enabled: !!chapterId,
-  });
-}
-
-export function useRelatedItems(chapterId: string) {
-  return useQuery({
-    queryKey: chapterKeys.related(chapterId),
-    queryFn: () => fetchRelatedItems(chapterId),
     enabled: !!chapterId,
   });
 }
