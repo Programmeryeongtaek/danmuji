@@ -1,5 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
-import { BookChapter, RelatedItem, RelatedItemType } from '@/types/book';
+import { BookChapter, ChapterFormValues, RelatedItem, RelatedItemType } from '@/types/book';
 
 export async function fetchChaptersByBookId(bookId: string): Promise<BookChapter[]> {
   const { data, error } = await supabase
@@ -74,4 +74,43 @@ return {
   );
 
   return results.filter((item): item is RelatedItem => item !== null);
+}
+
+export async function createChapter(
+  bookId: string,
+  payload: ChapterFormValues
+): Promise<BookChapter> {
+  const { data, error } = await supabase
+    .from("book_chapters")
+    .insert({ ...payload, book_id: bookId })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function updateChapter(
+  chapterId: string,
+  payload: Partial<ChapterFormValues>
+): Promise<BookChapter> {
+  const { data, error } = await supabase
+    .from("book_chapters")
+    .update(payload)
+    .eq("id", chapterId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteChapter(chapterId: string): Promise<void> {
+  await supabase
+    .from("content_links")
+    .delete()
+    .or(`source_id.eq.${chapterId},target_id.eq.${chapterId}`);
+
+  const { error } = await supabase.from("book_chapters").delete().eq("id", chapterId);
+  if (error) throw error;
 }

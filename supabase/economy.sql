@@ -32,3 +32,16 @@ create table content_links (
 create index on book_chapters (book_id);
 create index on content_links (source_type, source_id);
 create index on content_links (target_type, target_id);
+
+alter table book_summaries
+  add column isbn text,
+  add column cover_url text;
+
+alter table book_chapters
+drop constraint book_chapters_book_id_fkey,
+add constraint book_chapters_book_id_fkey
+  foreign key (book_id) references book_summaries(id) on delete cascade;
+
+alter table book_summaries disable row level security;
+alter table book_chapters disable row level security;
+alter table content_links disable row level security;

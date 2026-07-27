@@ -1,5 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
-import { Book } from '@/types/book';
+import { Book, BookFormValues } from '@/types/book';
 
 export async function fetchBooks(): Promise<Book[]> {
   const { data, error } = await supabase
@@ -23,8 +23,7 @@ export async function fetchBookById(bookId: string): Promise<Book> {
 }
 
 export async function createBook(
-  payload: Pick<Book, "title" | "author" | "summary" | "status" | "tags">
-): Promise<Book> {
+  payload: BookFormValues): Promise<Book> {
   const { data, error } = await supabase
     .from("book_summaries")
     .insert(payload)
@@ -37,7 +36,7 @@ export async function createBook(
 
 export async function updateBook(
   bookId: string,
-  payload: Partial<Pick<Book, "title" | "author" | "summary" | "status" | "tags">>
+  payload: Partial<BookFormValues>
 ): Promise<Book> {
   const { data, error } = await supabase
     .from("book_summaries")
