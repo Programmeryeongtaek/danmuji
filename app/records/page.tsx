@@ -1,6 +1,9 @@
 'use client';
 
-import { activeRecordTabAtom } from '@/components/records/atoms';
+import {
+  activeRecordTabAtom,
+  recordSearchQueryAtom,
+} from '@/components/records/atoms';
 import { RecordCard } from '@/components/records/RecordCard';
 import { RecordDetailModal } from '@/components/records/RecordDetailModal';
 import {
@@ -10,6 +13,7 @@ import {
 } from '@/components/records/recordFormAtoms';
 import { RecordFormModal } from '@/components/records/RecordFormModal';
 import { RecordTabs } from '@/components/records/RecordTabs';
+import { matchesRecordSearch } from '@/components/records/searchUtils';
 import {
   useCreateQuote,
   useDeleteQuote,
@@ -37,6 +41,7 @@ export default function RecordsPage() {
   const { data: records = [], isLoading, isError } = useRecordsFeed();
 
   const [activeTab, setActiveTab] = useAtom(activeRecordTabAtom);
+  const [searchQuery, setSearchQuery] = useAtom(recordSearchQueryAtom);
   const [selectedRecord, setSelectedRecord] = useAtom(selectedRecordAtom);
   const setIsFormOpen = useSetAtom(isRecordFormOpenAtom);
   const setFormType = useSetAtom(recordFormTypeAtom);
@@ -63,10 +68,9 @@ export default function RecordsPage() {
     updateThought.isPending ||
     updateSaying.isPending;
 
-  const filteredRecords: RecordItem[] =
-    activeTab === 'all'
-      ? records
-      : records.filter((record) => record.record_type === activeTab);
+  const filteredRecords: RecordItem[] = records
+    .filter((record) => activeTab === 'all' || record.record_type === activeTab)
+    .filter((record) => matchesRecordSearch(record, searchQuery));
 
   const handleAddClick = () => {
     setEditingRecord(null);
@@ -77,7 +81,7 @@ export default function RecordsPage() {
   };
 
   // records_feed 뷰는 별도 쿼리 키로 캐싱되어 있어서, 각 타입 테이블에
-  // insert/update/delete가 성공한 뒤 recordFeedKeys도 같이 무효화
+  // insert/update/delete가 성공한 뒤 recordFeedKeys도 같이 무효화해줍니다.
   const invalidateFeed = () => {
     queryClient.invalidateQueries({ queryKey: recordFeedKeys.all });
   };
@@ -142,10 +146,22 @@ export default function RecordsPage() {
       </div>
 
       <div className="mb-4 flex items-center gap-2 rounded-md bg-neutral-50 px-2.5 py-1.5 dark:bg-neutral-900">
-        <Search className="h-3.5 w-3.5 text-neutral-400" />
-        <span className="text-xs text-neutral-400">
-          책 제목, 저자, 태그로 검색
-        </span>
+        <Search className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+        <input
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="책 제목, 저자, 태그로 검색"
+          className="w-full bg-transparent text-xs text-neutral-700 placeholder:text-neutral-400 focus:outline-none dark:text-neutral-200"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            aria-label="검색어 지우기"
+            className="shrink-0 text-xs text-neutral-400"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {isLoading && (
@@ -162,7 +178,9 @@ export default function RecordsPage() {
 
       {!isLoading && !isError && filteredRecords.length === 0 && (
         <p className="py-8 text-center text-[13px] text-neutral-400">
-          아직 기록이 없어요. 첫 기록을 추가해보세요.
+          {searchQuery
+            ? '검색 결과가 없어요.'
+            : '아직 기록이 없어요. 첫 기록을 추가해보세요.'}
         </p>
       )}
 
