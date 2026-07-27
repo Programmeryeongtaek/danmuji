@@ -1,7 +1,7 @@
 import { supabase } from "@/shared/lib/supabase";
 import type { Saying } from "@/types/record";
 
-type CreateSayingInput = Pick<
+export type CreateSayingInput = Pick<
   Saying,
   "content" | "source_person" | "context" | "tags"
 >;
@@ -28,6 +28,20 @@ export async function createSaying(
     .select()
     .single();
 
+  if (error) throw error;
+  return { ...data, record_type: "saying" as const };
+}
+
+export async function updateSaying(id: string, input: CreateSayingInput): Promise<Saying> {
+  const { content, source_person, context, tags } = input;
+
+  const { data, error } = await supabase
+    .from("sayings")
+    .update({ content, source_person, context, tags })
+    .eq("id", id)
+    .select()
+    .single();
+    
   if (error) throw error;
   return { ...data, record_type: "saying" as const };
 }

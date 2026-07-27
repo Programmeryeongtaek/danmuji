@@ -1,7 +1,7 @@
 import { supabase } from "@/shared/lib/supabase";
 import type { Thought } from "@/types/record";
 
-type CreateThoughtInput = Pick<Thought, "content" | "tags">;
+export type CreateThoughtInput = Pick<Thought, "content" | "tags">;
 
 export async function fetchThoughts(): Promise<Thought[]> {
   const { data, error } = await supabase
@@ -22,6 +22,20 @@ export async function createThought(
   const { data, error } = await supabase
     .from("thoughts")
     .insert({ content, tags })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return { ...data, record_type: "thought" as const };
+}
+
+export async function updateThought(id: string, input: CreateThoughtInput): Promise<Thought> {
+  const { content, tags } = input;
+
+  const { data, error } = await supabase
+    .from("thoughts")
+    .update({ content, tags })
+    .eq("id", id)
     .select()
     .single();
 

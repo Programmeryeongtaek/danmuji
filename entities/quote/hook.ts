@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createQuote, deleteQuote, fetchQuotes } from './api';
+import { createQuote, CreateQuoteInput, deleteQuote, fetchQuotes, updateQuote } from './api';
 
 export const quoteKeys = {
   all: ['quotes'] as const,
@@ -17,6 +17,17 @@ export function useCreateQuote() {
       queryClient.invalidateQueries({ queryKey: quoteKeys.all });
     },
   });
+}
+
+export function useUpdateQuote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: CreateQuoteInput }) => 
+      updateQuote(id, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: quoteKeys.all });
+    }
+  })
 }
 
 export function useDeleteQuote() {

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createSaying, deleteSaying, fetchSayings } from './api';
+import { createSaying, CreateSayingInput, deleteSaying, fetchSayings, updateSaying } from './api';
 
 export const sayingKeys = {
   all: ['sayings'] as const,
@@ -13,6 +13,17 @@ export function useCreateSaying() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createSaying,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sayingKeys.all });
+    },
+  });
+}
+
+export function useUpdateSaying() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: CreateSayingInput }) =>
+      updateSaying(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sayingKeys.all });
     },
