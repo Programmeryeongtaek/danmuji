@@ -1,3 +1,5 @@
+import { KeywordList } from '@/components/economy/keywords/KeywordList';
+
 export default function KeywordsPage() {
-  return <p className="text-sm text-neutral-400">준비 중입니다.</p>;
+  return <KeywordList />;
 }

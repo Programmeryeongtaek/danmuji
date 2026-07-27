@@ -4,11 +4,11 @@ import { useBook } from '@/entities/economy/book/hooks';
 import {
   useChapter,
   useDeleteChapter,
-  useRelatedItems,
 } from '@/entities/economy/bookChapter/hooks';
 import Link from 'next/link';
-import { RelatedItems } from './RelatedItems';
+import { RelatedItems } from '../RelatedItems';
 import { useRouter } from 'next/navigation';
+import { useRelatedItems } from '@/entities/economy/relatedLinks/hooks';
 
 export function ChapterDetail({
   bookId,
