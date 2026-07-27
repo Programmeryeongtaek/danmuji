@@ -1,7 +1,7 @@
 import { supabase } from "@/shared/lib/supabase";
 import type { Quote } from "@/types/record";
 
-type CreateQuoteInput = Pick<
+export type CreateQuoteInput = Pick<
   Quote,
   "content" | "book_title" | "author" | "page_number" | "tags"
 >;
@@ -24,6 +24,23 @@ export async function createQuote(input: CreateQuoteInput): Promise<Quote> {
   const { data, error } = await supabase
     .from("quotes")
     .insert({ content, book_title, author, page_number, tags })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return { ...data, record_type: "quote" as const };
+}
+
+export async function updateQuote(
+  id: string,
+  input: CreateQuoteInput
+): Promise<Quote> {
+  const { content, book_title, author, page_number, tags } = input;
+
+  const { data, error } = await supabase
+    .from("quotes")
+    .update({ content, book_title, author, page_number, tags })
+    .eq("id", id)
     .select()
     .single();
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createThought, deleteThought, fetchThoughts } from './api';
+import { createThought, CreateThoughtInput, deleteThought, fetchThoughts, updateThought } from './api';
 
 export const thoughtKeys = {
   all: ['thoughts'] as const,
@@ -13,6 +13,17 @@ export function useCreateThought() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createThought,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: thoughtKeys.all });
+    },
+  });
+}
+
+export function useUpdateThought() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: CreateThoughtInput }) =>
+      updateThought(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: thoughtKeys.all });
     },

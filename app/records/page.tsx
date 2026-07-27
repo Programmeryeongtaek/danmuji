@@ -4,19 +4,32 @@ import { activeRecordTabAtom } from '@/components/records/atoms';
 import { RecordCard } from '@/components/records/RecordCard';
 import { RecordDetailModal } from '@/components/records/RecordDetailModal';
 import {
+  editingRecordAtom,
   isRecordFormOpenAtom,
   recordFormTypeAtom,
-} from '@/components/records/RecordFormAtoms';
+} from '@/components/records/recordFormAtoms';
 import { RecordFormModal } from '@/components/records/RecordFormModal';
 import { RecordTabs } from '@/components/records/RecordTabs';
-import { useCreateQuote, useDeleteQuote } from '@/entities/quote/hook';
+import {
+  useCreateQuote,
+  useDeleteQuote,
+  useUpdateQuote,
+} from '@/entities/quote/hook';
 import { recordFeedKeys, useRecordsFeed } from '@/entities/record/hook';
-import { useCreateSaying, useDeleteSaying } from '@/entities/saying/hook';
-import { useCreateThought, useDeleteThought } from '@/entities/thought/hook';
+import {
+  useCreateSaying,
+  useDeleteSaying,
+  useUpdateSaying,
+} from '@/entities/saying/hook';
+import {
+  useCreateThought,
+  useDeleteThought,
+  useUpdateThought,
+} from '@/entities/thought/hook';
 import { selectedRecordAtom } from '@/shared/atoms/recordModalAtoms';
 import { RecordDraft, RecordItem } from '@/types/record';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { Plus, Search } from 'lucide-react';
 
 export default function RecordsPage() {
@@ -27,17 +40,28 @@ export default function RecordsPage() {
   const [selectedRecord, setSelectedRecord] = useAtom(selectedRecordAtom);
   const setIsFormOpen = useSetAtom(isRecordFormOpenAtom);
   const setFormType = useSetAtom(recordFormTypeAtom);
+  const setEditingRecord = useSetAtom(editingRecordAtom);
+  const editingRecord = useAtomValue(editingRecordAtom);
 
   const createQuote = useCreateQuote();
   const createThought = useCreateThought();
   const createSaying = useCreateSaying();
+
+  const updateQuote = useUpdateQuote();
+  const updateThought = useUpdateThought();
+  const updateSaying = useUpdateSaying();
 
   const deleteQuote = useDeleteQuote();
   const deleteThought = useDeleteThought();
   const deleteSaying = useDeleteSaying();
 
   const isSubmitting =
-    createQuote.isPending || createThought.isPending || createSaying.isPending;
+    createQuote.isPending ||
+    createThought.isPending ||
+    createSaying.isPending ||
+    updateQuote.isPending ||
+    updateThought.isPending ||
+    updateSaying.isPending;
 
   const filteredRecords: RecordItem[] =
     activeTab === 'all'
@@ -45,6 +69,7 @@ export default function RecordsPage() {
       : records.filter((record) => record.record_type === activeTab);
 
   const handleAddClick = () => {
+    setEditingRecord(null);
     if (activeTab !== 'all') {
       setFormType(activeTab);
     }
@@ -52,7 +77,7 @@ export default function RecordsPage() {
   };
 
   // records_feed 뷰는 별도 쿼리 키로 캐싱되어 있어서, 각 타입 테이블에
-  // insert/delete가 성공한 뒤 recordFeedKeys도 같이 무효화해줍니다.
+  // insert/update/delete가 성공한 뒤 recordFeedKeys도 같이 무효화
   const invalidateFeed = () => {
     queryClient.invalidateQueries({ queryKey: recordFeedKeys.all });
   };
@@ -69,6 +94,22 @@ export default function RecordsPage() {
       createSaying.mutate(draft, { onSuccess });
     } else {
       createThought.mutate(draft, { onSuccess });
+    }
+  };
+
+  const handleUpdateRecord = (id: string, draft: RecordDraft) => {
+    const onSuccess = () => {
+      invalidateFeed();
+      setIsFormOpen(false);
+      setEditingRecord(null);
+    };
+
+    if (draft.record_type === 'quote') {
+      updateQuote.mutate({ id, input: draft }, { onSuccess });
+    } else if (draft.record_type === 'saying') {
+      updateSaying.mutate({ id, input: draft }, { onSuccess });
+    } else {
+      updateThought.mutate({ id, input: draft }, { onSuccess });
     }
   };
 
@@ -141,7 +182,9 @@ export default function RecordsPage() {
         onDelete={handleDeleteRecord}
       />
       <RecordFormModal
-        onSubmit={handleCreateRecord}
+        key={editingRecord?.id ?? 'new'}
+        onCreate={handleCreateRecord}
+        onUpdate={handleUpdateRecord}
         isSubmitting={isSubmitting}
       />
     </div>
