@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createKeyword, deleteKeyword, fetchKeywordById, fetchKeywords, fetchKeywordsWithRelatedCount, updateKeyword } from './api';
+import { createKeyword, deleteKeyword, fetchKeywordById, fetchKeywordGraph, fetchKeywords, fetchKeywordsWithRelatedCount, updateKeyword } from './api';
 import { KeywordFormValues } from '@/types/keyword';
 
 export const keywordKeys = {
@@ -21,6 +21,13 @@ export function useKeyword(keywordId: string) {
     queryKey: keywordKeys.detail(keywordId),
     queryFn: () => fetchKeywordById(keywordId),
     enabled: !!keywordId,
+  });
+}
+
+export function useKeywordGraph() {
+  return useQuery({
+    queryKey: ['keywords', 'graph'],
+    queryFn: fetchKeywordGraph,
   });
 }
 

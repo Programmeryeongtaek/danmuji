@@ -22,6 +22,9 @@ export function KeywordList() {
 
   return (
     <div>
+      <Link href="/economy/keywords/map" className="text-sm text-neutral-500">
+        용어 지도 보기
+      </Link>
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2 text-xs">
           {FILTERS.map((f) => (
