@@ -1,6 +1,46 @@
 import { supabase } from '@/shared/lib/supabase';
-import { Keyword, KeywordFormValues, KeywordWithRelatedCount } from '@/types/keyword';
+import { Keyword, KeywordFormValues, KeywordStatus, KeywordWithRelatedCount } from '@/types/keyword';
 import { deleteLinksForItem, fetchRelatedCounts } from '../economy/relatedLinks/api';
+
+export interface KeywordGraphNode {
+  id: string;
+  term: string;
+  status: KeywordStatus;
+}
+
+export interface KeywordGraphLink {
+  source: string;
+  target: string;
+}
+
+export async function fetchKeywordGraph(): Promise<{
+  nodes: KeywordGraphNode[];
+  links: KeywordGraphLink[];
+}> {
+  const { data: keywords, error: keywordError } = await supabase
+    .from("economic_keywords")
+    .select('id, term, status');
+
+  if (keywordError) throw keywordError;
+
+  const ids = (keywords ?? []).map((k) => k.id);
+  if (ids.length === 0) return { nodes: [], links: [] };
+
+  const idList = ids.join(',');
+  const { data: links, error: linkError } = await supabase
+    .from("content_links")
+    .select('source_id, target_id, source_type, target_type')
+    .eq('source_type', 'keyword')
+    .eq('target_type', 'keyword')
+    .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
+
+  if (linkError) throw linkError;
+
+  return {
+    nodes: keywords ?? [],
+    links: (links ?? []).map((l) => ({ source: l.source_id, target: l.target_id })),
+  };
+}
 
 export async function fetchKeywords(): Promise<Keyword[]> {
   const { data, error } = await supabase
