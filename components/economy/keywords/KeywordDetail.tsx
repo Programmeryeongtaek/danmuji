@@ -1,13 +1,20 @@
 'use client';
 
 import { useRelatedItems } from '@/entities/economy/relatedLinks/hooks';
-import { useDeleteKeyword, useKeyword } from '@/entities/keyword/hooks';
+import {
+  keywordKeys,
+  useDeleteKeyword,
+  useKeyword,
+} from '@/entities/keyword/hooks';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RelatedItems } from '../RelatedItems';
+import { RelatedItemPicker } from '../RelatedItemPicker';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function KeywordDetail({ keywordId }: { keywordId: string }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: keyword, isLoading } = useKeyword(keywordId);
   const { data: related } = useRelatedItems(keywordId);
   const deleteKeyword = useDeleteKeyword();
@@ -20,6 +27,10 @@ export function KeywordDetail({ keywordId }: { keywordId: string }) {
     if (!confirm('이 개념을 삭제할까요?')) return;
     await deleteKeyword.mutateAsync(keywordId);
     router.push('/economy/keywords');
+  }
+
+  function invalidateCounts() {
+    queryClient.invalidateQueries({ queryKey: keywordKeys.withCounts });
   }
 
   return (
@@ -38,7 +49,18 @@ export function KeywordDetail({ keywordId }: { keywordId: string }) {
       <p className="text-sm text-neutral-700 leading-relaxed mb-6">
         {keyword.definition}
       </p>
-      <RelatedItems items={related ?? []} />
+
+      <RelatedItems
+        itemId={keywordId}
+        items={related ?? []}
+        onLinkDeleted={invalidateCounts}
+      />
+      <RelatedItemPicker
+        itemType="keyword"
+        itemId={keywordId}
+        currentText={keyword.definition}
+        onLinkCreated={invalidateCounts}
+      />
     </div>
   );
 }

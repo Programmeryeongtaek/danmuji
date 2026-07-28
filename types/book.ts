@@ -25,6 +25,7 @@ export interface BookChapter {
 export type RelatedItemType = "chapter" | "keyword" | "news" | "etf";
 
 export interface RelatedItem {
+  linkId: string;
   type: RelatedItemType;
   id: string;
   title: string;

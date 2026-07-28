@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createKeyword, deleteKeyword, fetchKeywordById, fetchKeywords, fetchKeywordsWithRelatedCount, updateKeyword } from './api';
 import { KeywordFormValues } from '@/types/keyword';
 
-const keywordKeys = {
+export const keywordKeys = {
   all: ["keywords"] as const,
   withCounts: ['keywords', 'withCounts'] as const,
   detail: (keywordId: string) => ["keywords", keywordId] as const,
