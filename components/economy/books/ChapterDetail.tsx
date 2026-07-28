@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { RelatedItems } from '../RelatedItems';
 import { useRouter } from 'next/navigation';
 import { useRelatedItems } from '@/entities/economy/relatedLinks/hooks';
+import { RelatedItemPicker } from '../RelatedItemPicker';
 
 export function ChapterDetail({
   bookId,
@@ -57,7 +58,17 @@ export function ChapterDetail({
       <p className="text-sm text-neutral-700 leading-relaxed mb-6">
         {chapter.content}
       </p>
-      <RelatedItems items={related ?? []} />
+
+      <RelatedItems
+        itemId={chapterId}
+        items={related ?? []}
+        openKeywordsInModal
+      />
+      <RelatedItemPicker
+        itemType="chapter"
+        itemId={chapterId}
+        currentText={chapter.content}
+      />
     </div>
   );
 }
