@@ -32,7 +32,7 @@ export async function fetchRelatedItems(itemId: string): Promise<RelatedItem[]> 
 
       const { data, error: fetchError } = await supabase
         .from(TARGET_TABLE[relatedType])
-        .select('*')
+        .select("*")
         .eq("id", relatedId)
         .single();
 
@@ -42,6 +42,7 @@ export async function fetchRelatedItems(itemId: string): Promise<RelatedItem[]> 
       const titleColumn = TARGET_TITLE_COLUMN[relatedType];
 
       return {
+        linkId: link.id,
         type: relatedType,
         id: relatedId,
         title: row[titleColumn] as string,
@@ -55,10 +56,10 @@ export async function fetchRelatedItems(itemId: string): Promise<RelatedItem[]> 
 export async function fetchRelatedCounts(itemIds: string[]): Promise<Record<string, number>> {
   if (itemIds.length === 0) return {};
 
-  const idList = itemIds.join(',');
+  const idList = itemIds.join(",");
   const { data: links, error } = await supabase
     .from("content_links")
-    .select('source_id, target_id')
+    .select("source_id, target_id")
     .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
 
   if (error) throw error;
@@ -79,16 +80,21 @@ export async function createLink(
   sourceId: string,
   targetType: RelatedItemType,
   targetId: string,
-  relationKind?: 'related' | 'prerequisite' | 'derived'
+  relationKind?: "related" | "prerequisite" | "derived"
 ): Promise<void> {
-  const { error } = await supabase.from('content_links').insert({
+  const { error } = await supabase.from("content_links").insert({
     source_type: sourceType,
     source_id: sourceId,
     target_type: targetType,
     target_id: targetId,
-    relation_kind: relationKind ?? 'related',
+    relation_kind: relationKind ?? "related",
   });
 
+  if (error) throw error;
+}
+
+export async function deleteLink(linkId: string): Promise<void> {
+  const { error } = await supabase.from("content_links").delete().eq("id", linkId);
   if (error) throw error;
 }
 
