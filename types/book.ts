@@ -22,6 +22,10 @@ export interface BookChapter {
   created_at: string;
 }
 
+export interface ChapterWithRelatedCount extends BookChapter {
+  relatedCount: number;
+}
+
 export type RelatedItemType = "chapter" | "keyword" | "news" | "etf";
 
 export interface RelatedItem {

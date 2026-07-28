@@ -2,6 +2,7 @@
 
 import { useBook } from '@/entities/economy/book/hooks';
 import {
+  chapterKeys,
   useChapter,
   useDeleteChapter,
 } from '@/entities/economy/bookChapter/hooks';
@@ -10,6 +11,7 @@ import { RelatedItems } from '../RelatedItems';
 import { useRouter } from 'next/navigation';
 import { useRelatedItems } from '@/entities/economy/relatedLinks/hooks';
 import { RelatedItemPicker } from '../RelatedItemPicker';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function ChapterDetail({
   bookId,
@@ -19,6 +21,7 @@ export function ChapterDetail({
   chapterId: string;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: book } = useBook(bookId);
   const { data: chapter, isLoading } = useChapter(chapterId);
   const { data: related } = useRelatedItems(chapterId);
@@ -32,6 +35,12 @@ export function ChapterDetail({
     if (!confirm('이 챕터를 삭제할까요?')) return;
     await deleteChapter.mutateAsync(chapterId);
     router.push(`/economy/books/${bookId}`);
+  }
+
+  function invalidateCounts() {
+    queryClient.invalidateQueries({
+      queryKey: chapterKeys.byBookWithCounts(bookId),
+    });
   }
 
   return (
@@ -63,11 +72,13 @@ export function ChapterDetail({
         itemId={chapterId}
         items={related ?? []}
         openKeywordsInModal
+        onLinkDeleted={invalidateCounts}
       />
       <RelatedItemPicker
         itemType="chapter"
         itemId={chapterId}
         currentText={chapter.content}
+        onLinkCreated={invalidateCounts}
       />
     </div>
   );

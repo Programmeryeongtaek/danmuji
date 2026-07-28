@@ -1,6 +1,6 @@
 import { supabase } from '@/shared/lib/supabase';
-import { BookChapter, ChapterFormValues } from '@/types/book';
-import { deleteLinksForItem } from '../relatedLinks/api';
+import { BookChapter, ChapterFormValues, ChapterWithRelatedCount } from '@/types/book';
+import { deleteLinksForItem, fetchRelatedCounts } from '../relatedLinks/api';
 
 export async function fetchChaptersByBookId(bookId: string): Promise<BookChapter[]> {
   const { data, error } = await supabase
@@ -22,6 +22,17 @@ export async function fetchChapterById(chapterId: string): Promise<BookChapter> 
 
   if (error) throw error;
   return data;
+}
+
+export async function fetchChaptersWithRelatedCount(
+  bookId: string
+): Promise<ChapterWithRelatedCount[]> {
+  const chapters = await fetchChaptersByBookId(bookId);
+  if (chapters.length === 0) return [];
+
+  const counts = await fetchRelatedCounts(chapters.map((c) => c.id));
+
+  return chapters.map((c) => ({ ...c, relatedCount: counts[c.id] ?? 0 }));
 }
 
 export async function createChapter(

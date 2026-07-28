@@ -1,17 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createChapter, deleteChapter, fetchChapterById, fetchChaptersByBookId, updateChapter } from './api';
+import { createChapter, deleteChapter, fetchChapterById, fetchChaptersByBookId, fetchChaptersWithRelatedCount, updateChapter } from './api';
 import { ChapterFormValues } from '@/types/book';
 
-const chapterKeys = {
-  byBook: (bookId: string) => ['chapters', 'book', bookId] as const,
-  detail: (chapterId: string) => ['chapters', chapterId] as const,
-  related: (chapterId: string) => ['chapters', chapterId, 'related'] as const,
+export const chapterKeys = {
+  byBook: (bookId: string) => ["chapters", "book", bookId] as const,
+  byBookWithCounts: (bookId: string) => ["chapters", "book", bookId, "withCounts"] as const,
+  detail: (chapterId: string) => ["chapters", chapterId] as const,
 };
 
 export function useChapters(bookId: string) {
   return useQuery({
     queryKey: chapterKeys.byBook(bookId),
     queryFn: () => fetchChaptersByBookId(bookId),
+    enabled: !!bookId,
+  });
+}
+
+export function useChaptersWithRelatedCount(bookId: string) {
+  return useQuery({
+    queryKey: chapterKeys.byBookWithCounts(bookId),
+    queryFn: () => fetchChaptersWithRelatedCount(bookId),
     enabled: !!bookId,
   });
 }

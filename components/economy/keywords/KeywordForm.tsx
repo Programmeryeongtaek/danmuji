@@ -11,7 +11,7 @@ import { Keyword, KeywordFormValues } from '@/types/keyword';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { SubmitEvent, useState } from 'react';
-import { RelatedConceptDraftPicker } from './RelatedConceptDraftPicker';
+import { RelatedConceptDraftPicker } from '../RelatedConceptDraftPicker';
 import { RelatedItems } from '../RelatedItems';
 import { RelatedItemPicker } from '../RelatedItemPicker';
 
