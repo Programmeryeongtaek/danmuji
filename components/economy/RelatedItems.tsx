@@ -2,6 +2,7 @@ import { useDeleteLink } from '@/entities/economy/relatedLinks/hooks';
 import { RelatedItem } from '@/types/book';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { RelatedKeywordModal } from './RelatedKeywordModal';
 
 const TYPE_HREF: Record<RelatedItem['type'], (id: string) => string> = {
   chapter: (id) => `/economy/books/chapters/${id}`,
@@ -14,19 +15,28 @@ export function RelatedItems({
   itemId,
   items,
   onLinkDeleted,
+  openKeywordsInModal = false,
 }: {
   itemId: string;
   items: RelatedItem[];
   onLinkDeleted?: () => void;
+  openKeywordsInModal?: boolean;
 }) {
   const router = useRouter();
   const deleteLink = useDeleteLink(itemId);
   const [managing, setManaging] = useState(false);
+  const [modalKeywordId, setModalKeywordId] = useState<string | null>(null);
 
   if (items.length === 0) return null;
 
   function handleChipClick(item: RelatedItem) {
     if (managing) return;
+
+    if (openKeywordsInModal && item.type === 'keyword') {
+      setModalKeywordId(item.id);
+      return;
+    }
+
     router.push(TYPE_HREF[item.type](item.id));
   }
 
@@ -71,6 +81,11 @@ export function RelatedItems({
           </div>
         ))}
       </div>
+
+      <RelatedKeywordModal
+        keywordId={modalKeywordId}
+        onClose={() => setModalKeywordId(null)}
+      />
     </div>
   );
 }

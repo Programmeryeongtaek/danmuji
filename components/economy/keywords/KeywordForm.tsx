@@ -1,9 +1,19 @@
 'use client';
 
-import { useCreateKeyword, useUpdateKeyword } from '@/entities/keyword/hooks';
+import { createLink } from '@/entities/economy/relatedLinks/api';
+import { useRelatedItems } from '@/entities/economy/relatedLinks/hooks';
+import {
+  keywordKeys,
+  useCreateKeyword,
+  useUpdateKeyword,
+} from '@/entities/keyword/hooks';
 import { Keyword, KeywordFormValues } from '@/types/keyword';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { SubmitEvent, useState } from 'react';
+import { RelatedConceptDraftPicker } from '../RelatedConceptDraftPicker';
+import { RelatedItems } from '../RelatedItems';
+import { RelatedItemPicker } from '../RelatedItemPicker';
 
 export function KeywordForm({
   mode,
@@ -13,8 +23,10 @@ export function KeywordForm({
   keyword?: Keyword;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const createKeyword = useCreateKeyword();
   const updateKeyword = useUpdateKeyword(keyword?.id ?? '');
+  const { data: related } = useRelatedItems(keyword?.id ?? '');
 
   const [values, setValues] = useState<KeywordFormValues>({
     term: keyword?.term ?? '',
@@ -23,18 +35,38 @@ export function KeywordForm({
     category: keyword?.category ?? '',
   });
 
+  const [draftRelated, setDraftRelated] = useState<Keyword[]>([]);
+
   const isPending = createKeyword.isPending || updateKeyword.isPending;
 
-  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (mode === 'create') {
       const created = await createKeyword.mutateAsync(values);
+
+      if (draftRelated.length > 0) {
+        await Promise.all(
+          draftRelated.map((k) =>
+            createLink('keyword', created.id, 'keyword', k.id),
+          ),
+        );
+        queryClient.invalidateQueries({ queryKey: keywordKeys.withCounts });
+      }
+
       router.push(`/economy/keywords/${created.id}`);
     } else if (keyword) {
       await updateKeyword.mutateAsync(values);
       router.push(`/economy/keywords/${keyword.id}`);
     }
+  }
+
+  function addDraft(k: Keyword) {
+    setDraftRelated((prev) => [...prev, k]);
+  }
+
+  function removeDraft(keywordId: string) {
+    setDraftRelated((prev) => prev.filter((k) => k.id !== keywordId));
   }
 
   return (
@@ -61,18 +93,6 @@ export function KeywordForm({
       </div>
 
       <div>
-        <label className="text-xs text-neutral-400 block mb-1">
-          분류 (선택)
-        </label>
-        <input
-          value={values.category ?? ''}
-          onChange={(e) => setValues({ ...values, category: e.target.value })}
-          placeholder="예: 통화정책, 행동경제학"
-          className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
-        />
-      </div>
-
-      <div>
         <label className="text-xs text-neutral-400 block mb-1">학습 상태</label>
         <select
           value={values.status}
@@ -88,6 +108,28 @@ export function KeywordForm({
           <option value="review">복습필요</option>
           <option value="done">완료</option>
         </select>
+      </div>
+
+      <div className="border-t border-neutral-200 pt-4">
+        {mode === 'create' ? (
+          <RelatedConceptDraftPicker
+            currentText={values.definition}
+            selected={draftRelated}
+            onAdd={addDraft}
+            onRemove={removeDraft}
+          />
+        ) : (
+          keyword && (
+            <>
+              <RelatedItems itemId={keyword.id} items={related ?? []} />
+              <RelatedItemPicker
+                itemType="keyword"
+                itemId={keyword.id}
+                currentText={values.definition}
+              />
+            </>
+          )
+        )}
       </div>
 
       <button

@@ -1,12 +1,12 @@
 'use client';
 
 import { useBook } from '@/entities/economy/book/hooks';
-import { useChapters } from '@/entities/economy/bookChapter/hooks';
+import { useChaptersWithRelatedCount } from '@/entities/economy/bookChapter/hooks';
 import Link from 'next/link';
 
 export function ChapterList({ bookId }: { bookId: string }) {
   const { data: book } = useBook(bookId);
-  const { data: chapters, isLoading } = useChapters(bookId);
+  const { data: chapters, isLoading } = useChaptersWithRelatedCount(bookId);
 
   if (isLoading)
     return <p className="text-sm text-neutral-400">불러오는 중...</p>;
@@ -31,9 +31,14 @@ export function ChapterList({ bookId }: { bookId: string }) {
           <Link
             key={chapter.id}
             href={`/economy/books/${bookId}/chapters/${chapter.id}`}
-            className="block border-l-2 border-amber-600 pl-3 py-2 hover:bg-neutral-50"
+            className="flex items-center justify-between border-l-2 border-amber-600 pl-3 py-2 hover:bg-neutral-50"
           >
-            {chapter.title}
+            <span>{chapter.title}</span>
+            {chapter.relatedCount > 0 && (
+              <span className="text-xs text-neutral-400">
+                관련 개념 {chapter.relatedCount}
+              </span>
+            )}
           </Link>
         ))}
       </div>

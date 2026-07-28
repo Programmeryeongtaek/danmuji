@@ -1,12 +1,20 @@
 'use client';
 
 import {
+  chapterKeys,
   useCreateChapter,
   useUpdateChapter,
 } from '@/entities/economy/bookChapter/hooks';
+import { createLink } from '@/entities/economy/relatedLinks/api';
+import { useRelatedItems } from '@/entities/economy/relatedLinks/hooks';
 import { BookChapter, ChapterFormValues } from '@/types/book';
+import { Keyword } from '@/types/keyword';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { SubmitEvent, useState } from 'react';
+import { RelatedConceptDraftPicker } from '../RelatedConceptDraftPicker';
+import { RelatedItems } from '../RelatedItems';
+import { RelatedItemPicker } from '../RelatedItemPicker';
 
 export function ChapterForm({
   mode,
@@ -20,8 +28,10 @@ export function ChapterForm({
   nextOrder?: number;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const createChapter = useCreateChapter(bookId);
   const updateChapter = useUpdateChapter(chapter?.id ?? '', bookId);
+  const { data: related } = useRelatedItems(chapter?.id ?? '');
 
   const [values, setValues] = useState<ChapterFormValues>({
     chapter_order: chapter?.chapter_order ?? nextOrder ?? 1,
@@ -29,18 +39,40 @@ export function ChapterForm({
     content: chapter?.content ?? '',
   });
 
+  const [draftRelated, setDraftRelated] = useState<Keyword[]>([]);
+
   const isPending = createChapter.isPending || updateChapter.isPending;
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (mode === 'create') {
       const created = await createChapter.mutateAsync(values);
+
+      if (draftRelated.length > 0) {
+        await Promise.all(
+          draftRelated.map((k) =>
+            createLink('chapter', created.id, 'keyword', k.id),
+          ),
+        );
+        queryClient.invalidateQueries({
+          queryKey: chapterKeys.byBookWithCounts(bookId),
+        });
+      }
+
       router.push(`/economy/books/${bookId}/chapters/${created.id}`);
     } else if (chapter) {
       await updateChapter.mutateAsync(values);
       router.push(`/economy/books/${bookId}/chapters/${chapter.id}`);
     }
+  }
+
+  function addDraft(k: Keyword) {
+    setDraftRelated((prev) => [...prev, k]);
+  }
+
+  function removeDraft(keywordId: string) {
+    setDraftRelated((prev) => prev.filter((k) => k.id !== keywordId));
   }
 
   return (
@@ -77,6 +109,28 @@ export function ChapterForm({
           onChange={(e) => setValues({ ...values, content: e.target.value })}
           className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
         />
+      </div>
+
+      <div className="border-t border-neutral-200 pt-4">
+        {mode === 'create' ? (
+          <RelatedConceptDraftPicker
+            currentText={values.content}
+            selected={draftRelated}
+            onAdd={addDraft}
+            onRemove={removeDraft}
+          />
+        ) : (
+          chapter && (
+            <>
+              <RelatedItems itemId={chapter.id} items={related ?? []} />
+              <RelatedItemPicker
+                itemType="chapter"
+                itemId={chapter.id}
+                currentText={values.content}
+              />
+            </>
+          )
+        )}
       </div>
 
       <button
