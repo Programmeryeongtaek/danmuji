@@ -2,6 +2,7 @@
 
 import { useBook } from '@/entities/economy/book/hooks';
 import { useChaptersWithRelatedCount } from '@/entities/economy/bookChapter/hooks';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export function ChapterList({ bookId }: { bookId: string }) {
@@ -13,8 +14,25 @@ export function ChapterList({ bookId }: { bookId: string }) {
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-6">
-        <div>
+      <div className="flex gap-4 items-start mb-6">
+        <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-neutral-200 flex items-center justify-center">
+          {book?.cover_url ? (
+            <Image
+              src={book.cover_url}
+              alt={book.title}
+              width={64}
+              height={80}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <i
+              className="ti ti-book"
+              style={{ fontSize: 22, color: 'var(--text-muted, #9ca3af)' }}
+              aria-hidden="true"
+            />
+          )}
+        </div>
+        <div className="flex-1">
           <p className="font-serif text-xl mb-1">{book?.title}</p>
           <p className="text-xs text-neutral-500">{book?.author}</p>
         </div>

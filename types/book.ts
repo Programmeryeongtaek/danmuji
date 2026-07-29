@@ -5,6 +5,7 @@ export interface Book {
   user_id: string | null;
   title: string;
   author: string | null;
+  publisher: string | null;
   summary: string;
   status: BookStatus;
   tags: string[] | null;
@@ -36,8 +37,8 @@ export interface RelatedItem {
 }
 
 export type BookFormValues = Pick<
-  Book,
-  "title" | "author" | "summary" | "status" | "tags" | "isbn" | "cover_url"
+Book,
+  "title" | "author" | "publisher" | "summary" | "status" | "tags" | "isbn" | "cover_url"
 >;
 
 export type ChapterFormValues = Pick<BookChapter, "chapter_order" | "title" | "content">;
