@@ -14,6 +14,7 @@ interface AladinSearchResult {
   summary: string;
   cover_url: string;
   isbn: string;
+  aladin_link: string;
 }
 
 export function BookForm({
@@ -42,6 +43,7 @@ export function BookForm({
     tags: book?.tags ?? [],
     isbn: book?.isbn ?? '',
     cover_url: book?.cover_url ?? '',
+    aladin_link: book?.aladin_link ?? '',
   });
 
   const isPending = createBook.isPending || updateBook.isPending;
@@ -115,6 +117,7 @@ export function BookForm({
       summary: result.summary,
       cover_url: result.cover_url,
       isbn: result.isbn,
+      aladin_link: result.aladin_link,
     }));
     setSearchResults([]);
     setSearchQuery('');

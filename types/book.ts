@@ -11,6 +11,7 @@ export interface Book {
   tags: string[] | null;
   isbn: string | null;
   cover_url: string | null;
+  aladin_link: string | null;
   created_at: string;
 }
 
@@ -37,8 +38,7 @@ export interface RelatedItem {
 }
 
 export type BookFormValues = Pick<
-Book,
-  "title" | "author" | "publisher" | "summary" | "status" | "tags" | "isbn" | "cover_url"
+  Book,
+  "title" | "author" | "publisher" | "summary" | "status" | "tags" | "isbn" | "cover_url" | "aladin_link"
 >;
-
 export type ChapterFormValues = Pick<BookChapter, "chapter_order" | "title" | "content">;
