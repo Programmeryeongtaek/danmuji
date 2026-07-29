@@ -61,3 +61,18 @@ alter table economic_keywords disable row level security;
 
 alter table content_links
   add column relation_kind text check (relation_kind in ('related', 'prerequisite', 'derived'));
+
+-- 스토리지 작업 book-covers
+create policy "Allow anonymous uploads to book-covers"
+on storage.objects for insert
+to anon
+with check (bucket_id = 'book-covers');
+
+create policy "Allow public read on book-covers"
+on storage.objects for select
+to anon
+using (bucket_id = 'book-covers');
+
+-- 출판사 정보
+alter table book_summaries
+  add column publisher text;
