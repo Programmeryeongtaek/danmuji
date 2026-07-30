@@ -7,6 +7,7 @@ interface AladinSearchResult {
   summary: string;
   cover_url: string;
   isbn: string;
+  aladin_link: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -35,6 +36,7 @@ export async function GET(req: NextRequest) {
       summary: item.description,
       cover_url: item.cover,
       isbn: item.isbn13,
+      aladin_link: item.link,
     })
   );
 

@@ -14,6 +14,7 @@ interface AladinSearchResult {
   summary: string;
   cover_url: string;
   isbn: string;
+  aladin_link: string;
 }
 
 export function BookForm({
@@ -32,6 +33,7 @@ export function BookForm({
   const [searchResults, setSearchResults] = useState<AladinSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState(false);
 
   const [values, setValues] = useState<BookFormValues>({
     title: book?.title ?? '',
@@ -42,6 +44,8 @@ export function BookForm({
     tags: book?.tags ?? [],
     isbn: book?.isbn ?? '',
     cover_url: book?.cover_url ?? '',
+    aladin_link: book?.aladin_link ?? '',
+    reflection: book?.reflection ?? '',
   });
 
   const isPending = createBook.isPending || updateBook.isPending;
@@ -101,6 +105,7 @@ export function BookForm({
         return;
       }
       setSearchResults(data.items);
+      setShowResultsModal(true);
     } finally {
       setIsSearching(false);
     }
@@ -115,7 +120,9 @@ export function BookForm({
       summary: result.summary,
       cover_url: result.cover_url,
       isbn: result.isbn,
+      aladin_link: result.aladin_link,
     }));
+    setShowResultsModal(false);
     setSearchResults([]);
     setSearchQuery('');
   }
@@ -149,42 +156,10 @@ export function BookForm({
         {searchError && (
           <p className="text-xs text-red-500 mt-1">{searchError}</p>
         )}
-
-        {searchResults.length > 0 && (
-          <div className="border border-neutral-200 rounded-lg mt-2 divide-y divide-neutral-100 max-h-72 overflow-y-auto">
-            {searchResults.map((result) => (
-              <button
-                key={result.isbn}
-                type="button"
-                onClick={() => handleSelectResult(result)}
-                className="flex gap-3 w-full text-left px-3 py-2 hover:bg-neutral-50"
-              >
-                <div className="w-10 h-14 shrink-0 rounded overflow-hidden bg-neutral-100">
-                  {result.cover_url && (
-                    <Image
-                      src={result.cover_url}
-                      alt={result.title}
-                      width={40}
-                      height={56}
-                      className="w-full h-full object-cover"
-                      priority
-                    />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm truncate">{result.title}</p>
-                  <p className="text-xs text-neutral-500 truncate">
-                    {result.author} · {result.publisher}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div>
-        <label className="text-xs text-neutral-400 block mb-1">표지</label>
+        <div className="text-xs text-neutral-400 block mb-1">표지</div>
         <div className="flex items-center gap-3">
           <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-neutral-100 border border-neutral-200 flex items-center justify-center">
             {values.cover_url ? (
@@ -267,10 +242,10 @@ export function BookForm({
       </div>
 
       <div>
-        <label className="text-xs text-neutral-400 block mb-1">소개</label>
+        <label className="text-xs text-neutral-400 block mb-1">요약</label>
         <textarea
           required
-          rows={10}
+          rows={4}
           value={values.summary}
           onChange={(e) => setValues({ ...values, summary: e.target.value })}
           className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
@@ -294,6 +269,23 @@ export function BookForm({
         </select>
       </div>
 
+      {values.status === 'done' && (
+        <div>
+          <label className="text-xs text-neutral-400 block mb-1">
+            소감 (선택)
+          </label>
+          <textarea
+            rows={3}
+            value={values.reflection ?? ''}
+            onChange={(e) =>
+              setValues({ ...values, reflection: e.target.value })
+            }
+            placeholder="이 책에 대해 남기고 싶은 생각을 적어보세요"
+            className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={isPending}
@@ -301,6 +293,52 @@ export function BookForm({
       >
         {mode === 'create' ? '등록' : '저장'}
       </button>
+
+      {showResultsModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl w-105 h-110 flex flex-col p-5">
+            <div className="flex justify-between items-center mb-3">
+              <p className="text-sm font-medium">검색 결과</p>
+              <button
+                type="button"
+                onClick={() => setShowResultsModal(false)}
+                className="text-xs text-neutral-400"
+              >
+                닫기
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto divide-y divide-neutral-100">
+              {searchResults.map((result) => (
+                <button
+                  key={result.isbn}
+                  type="button"
+                  onClick={() => handleSelectResult(result)}
+                  className="flex gap-3 w-full text-left py-2 hover:bg-neutral-50"
+                >
+                  <div className="w-10 h-14 shrink-0 rounded overflow-hidden bg-neutral-100">
+                    {result.cover_url && (
+                      <Image
+                        src={result.cover_url}
+                        alt={result.title}
+                        width={40}
+                        height={56}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm truncate">{result.title}</p>
+                    <p className="text-xs text-neutral-500 truncate">
+                      {result.author} · {result.publisher}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

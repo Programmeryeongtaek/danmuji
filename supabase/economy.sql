@@ -76,3 +76,11 @@ using (bucket_id = 'book-covers');
 -- 출판사 정보
 alter table book_summaries
   add column publisher text;
+
+-- 알라딘 출처 표시
+alter table book_summaries
+  add column aladin_link text;
+
+-- 도서 소감 필드 추가
+alter table book_summaries
+  add column reflection text;

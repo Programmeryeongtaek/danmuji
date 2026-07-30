@@ -34,7 +34,10 @@ export function ChapterList({ bookId }: { bookId: string }) {
         </div>
         <div className="flex-1">
           <p className="font-serif text-xl mb-1">{book?.title}</p>
-          <p className="text-xs text-neutral-500">{book?.author}</p>
+          <p className="text-xs text-neutral-500">
+            {book?.author}
+            {book?.publisher ? ` · ${book.publisher}` : ''}
+          </p>
         </div>
         <Link
           href={`/economy/books/${bookId}/edit`}
@@ -67,6 +70,22 @@ export function ChapterList({ bookId }: { bookId: string }) {
       >
         + 추가
       </Link>
+
+      {book?.aladin_link && (
+        <div className="border-t border-neutral-100 mt-8 pt-3">
+          <p className="text-[11px] text-neutral-300">
+            도서 DB 제공: 알라딘 인터넷서점(www.aladin.co.kr) ·{' '}
+            <a
+              href={book.aladin_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              알라딘에서 보기
+            </a>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
