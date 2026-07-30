@@ -1,3 +1,4 @@
+import { deleteCoverImage } from '@/entities/media/api';
 import { supabase } from '@/shared/lib/supabase';
 import { Book, BookFormValues } from '@/types/book';
 
@@ -50,6 +51,15 @@ export async function updateBook(
 }
 
 export async function deleteBook(bookId: string): Promise<void> {
+  const { data: book } = await supabase
+    .from('book_summaries')
+    .select('cover_url')
+    .eq('id', bookId)
+    .single();
+
+  if (book?.cover_url) {
+    await deleteCoverImage(book.cover_url);
+  }
   const { error } = await supabase.from("book_summaries").delete().eq("id", bookId);
   if (error) throw error;
 }

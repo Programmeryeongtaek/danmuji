@@ -12,6 +12,7 @@ export interface Book {
   isbn: string | null;
   cover_url: string | null;
   aladin_link: string | null;
+  reflection: string | null;
   created_at: string;
 }
 
@@ -39,6 +40,6 @@ export interface RelatedItem {
 
 export type BookFormValues = Pick<
   Book,
-  "title" | "author" | "publisher" | "summary" | "status" | "tags" | "isbn" | "cover_url" | "aladin_link"
+  "title" | "author" | "publisher" | "summary" | "status" | "tags" | "isbn" | "cover_url" | "aladin_link" | "reflection"
 >;
 export type ChapterFormValues = Pick<BookChapter, "chapter_order" | "title" | "content">;
