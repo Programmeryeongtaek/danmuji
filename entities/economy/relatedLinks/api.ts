@@ -53,6 +53,56 @@ export async function fetchRelatedItems(itemId: string): Promise<RelatedItem[]> 
   return results.filter((item): item is RelatedItem => item !== null);
 }
 
+export async function fetchRelatedTermsForItems(
+  itemIds: string[]
+): Promise<Record<string, string[]>> {
+  if (itemIds.length === 0) return {};
+
+  const idList = itemIds.join(",");
+  const { data: links, error } = await supabase
+    .from("content_links")
+    .select("source_id, target_id, source_type, target_type")
+    .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
+
+  if (error) throw error;
+  if (!links || links.length === 0) return {};
+
+  // 각 항목 id → 연결된 키워드 id 목록
+  const keywordIdsByItem: Record<string, string[]> = {};
+  const allKeywordIds = new Set<string>();
+
+  for (const link of links) {
+    const isSourceOurs = itemIds.includes(link.source_id);
+    const ourId = isSourceOurs ? link.source_id : link.target_id;
+    const otherType = isSourceOurs ? link.target_type : link.source_type;
+    const otherId = isSourceOurs ? link.target_id : link.source_id;
+
+    if (otherType !== "keyword") continue;
+
+    if (!keywordIdsByItem[ourId]) keywordIdsByItem[ourId] = [];
+    keywordIdsByItem[ourId].push(otherId);
+    allKeywordIds.add(otherId);
+  }
+
+  if (allKeywordIds.size === 0) return {};
+
+  const { data: keywords, error: keywordError } = await supabase
+    .from("economic_keywords")
+    .select("id, term")
+    .in("id", Array.from(allKeywordIds));
+
+  if (keywordError) throw keywordError;
+
+  const termById = new Map((keywords ?? []).map((k) => [k.id, k.term]));
+
+  const result: Record<string, string[]> = {};
+  for (const [itemId, keywordIds] of Object.entries(keywordIdsByItem)) {
+    result[itemId] = keywordIds.map((id) => termById.get(id)).filter((t): t is string => !!t);
+  }
+
+  return result;
+}
+
 export async function fetchRelatedCounts(itemIds: string[]): Promise<Record<string, number>> {
   if (itemIds.length === 0) return {};
 

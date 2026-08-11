@@ -109,3 +109,17 @@ alter table etfs disable row level security;
 
 create unique index etfs_ticker_market_unique
   on etfs (ticker, market);
+
+-- 뉴스요약
+create table news_summaries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users,
+  title text not null,
+  source text,
+  summary text not null,
+  article_url text,
+  published_date date,
+  created_at timestamptz default now()
+);
+
+alter table news_summaries disable row level security;
