@@ -172,7 +172,7 @@ export function BookForm({
         {searchError && (
           <p className="text-xs text-red-500 mt-1">{searchError}</p>
         )}
-        
+
         {duplicateBook && (
           <div className="mt-2 text-xs bg-amber-50 text-amber-800 rounded-lg px-3 py-2 flex items-center justify-between">
             <span>이미 등록된 책이에요.</span>

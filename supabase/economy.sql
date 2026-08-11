@@ -93,3 +93,19 @@ where isbn = '';
 create unique index book_summaries_isbn_unique
   on book_summaries (isbn)
   where isbn is not null;
+
+-- etf
+create table etfs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users,
+  ticker text not null,
+  market text check (market in ('domestic', 'overseas')) not null,
+  name text not null,
+  tags text[],
+  created_at timestamptz default now()
+);
+
+alter table etfs disable row level security;
+
+create unique index etfs_ticker_market_unique
+  on etfs (ticker, market);
