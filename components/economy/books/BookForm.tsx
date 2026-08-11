@@ -1,9 +1,11 @@
 'use client';
 
+import { fetchBookByIsbn } from '@/entities/economy/book/api';
 import { useCreateBook, useUpdateBook } from '@/entities/economy/book/hooks';
 import { deleteCoverImage, uploadCoverImage } from '@/entities/media/api';
 import { Book, BookFormValues } from '@/types/book';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SubmitEvent, useState } from 'react';
 
@@ -34,6 +36,7 @@ export function BookForm({
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [showResultsModal, setShowResultsModal] = useState(false);
+  const [duplicateBook, setDuplicateBook] = useState<Book | null>(null);
 
   const [values, setValues] = useState<BookFormValues>({
     title: book?.title ?? '',
@@ -52,6 +55,7 @@ export function BookForm({
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (duplicateBook) return;
 
     if (mode === 'create') {
       const created = await createBook.mutateAsync(values);
@@ -111,7 +115,19 @@ export function BookForm({
     }
   }
 
-  function handleSelectResult(result: AladinSearchResult) {
+  async function handleSelectResult(result: AladinSearchResult) {
+    setShowResultsModal(false);
+    setSearchResults([]);
+    setSearchQuery('');
+
+    const existing = result.isbn ? await fetchBookByIsbn(result.isbn) : null;
+
+    if (existing && existing.id !== book?.id) {
+      setDuplicateBook(existing);
+      return;
+    }
+
+    setDuplicateBook(null);
     setValues((prev) => ({
       ...prev,
       title: result.title,
@@ -122,9 +138,6 @@ export function BookForm({
       isbn: result.isbn,
       aladin_link: result.aladin_link,
     }));
-    setShowResultsModal(false);
-    setSearchResults([]);
-    setSearchQuery('');
   }
 
   return (
@@ -156,10 +169,22 @@ export function BookForm({
         {searchError && (
           <p className="text-xs text-red-500 mt-1">{searchError}</p>
         )}
+
+        {duplicateBook && (
+          <div className="mt-2 text-xs bg-amber-50 text-amber-800 rounded-lg px-3 py-2 flex items-center justify-between">
+            <span>이미 등록된 책이에요.</span>
+            <Link
+              href={`/economy/books/${duplicateBook.id}`}
+              className="underline"
+            >
+              보러가기
+            </Link>
+          </div>
+        )}
       </div>
 
       <div>
-        <div className="text-xs text-neutral-400 block mb-1">표지</div>
+        <label className="text-xs text-neutral-400 block mb-1">표지</label>
         <div className="flex items-center gap-3">
           <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-neutral-100 border border-neutral-200 flex items-center justify-center">
             {values.cover_url ? (
@@ -288,7 +313,7 @@ export function BookForm({
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || !!duplicateBook}
         className="text-sm bg-amber-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
       >
         {mode === 'create' ? '등록' : '저장'}

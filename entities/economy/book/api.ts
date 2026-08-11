@@ -23,6 +23,17 @@ export async function fetchBookById(bookId: string): Promise<Book> {
   return data;
 }
 
+export async function fetchBookByIsbn(isbn: string): Promise<Book | null> {
+  const { data, error } = await supabase
+    .from("book_summaries")
+    .select("*")
+    .eq("isbn", isbn)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function createBook(
   payload: BookFormValues): Promise<Book> {
   const normalized = { ...payload, isbn: payload.isbn || null };
