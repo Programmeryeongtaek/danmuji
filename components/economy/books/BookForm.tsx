@@ -138,6 +138,9 @@ export function BookForm({
       isbn: result.isbn,
       aladin_link: result.aladin_link,
     }));
+    setShowResultsModal(false);
+    setSearchResults([]);
+    setSearchQuery('');
   }
 
   return (
@@ -184,7 +187,7 @@ export function BookForm({
       </div>
 
       <div>
-        <label className="text-xs text-neutral-400 block mb-1">표지</label>
+        <div className="text-xs text-neutral-400 block mb-1">표지</div>
         <div className="flex items-center gap-3">
           <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-neutral-100 border border-neutral-200 flex items-center justify-center">
             {values.cover_url ? (
