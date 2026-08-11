@@ -23,11 +23,24 @@ export async function fetchBookById(bookId: string): Promise<Book> {
   return data;
 }
 
-export async function createBook(
-  payload: BookFormValues): Promise<Book> {
+export async function fetchBookByIsbn(isbn: string): Promise<Book | null> {
   const { data, error } = await supabase
     .from("book_summaries")
-    .insert(payload)
+    .select("*")
+    .eq("isbn", isbn)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function createBook(
+  payload: BookFormValues): Promise<Book> {
+  const normalized = { ...payload, isbn: payload.isbn || null };
+  
+  const { data, error } = await supabase
+    .from("book_summaries")
+    .insert(normalized)
     .select()
     .single();
 
@@ -39,9 +52,14 @@ export async function updateBook(
   bookId: string,
   payload: Partial<BookFormValues>
 ): Promise<Book> {
+  const normalized = {
+    ...payload,
+    ...(payload.isbn !== undefined ? { isbn: payload.isbn || null } : {}),
+  };
+
   const { data, error } = await supabase
     .from("book_summaries")
-    .update(payload)
+    .update(normalized)
     .eq("id", bookId)
     .select()
     .single();

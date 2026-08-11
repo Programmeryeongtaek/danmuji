@@ -84,3 +84,12 @@ alter table book_summaries
 -- 도서 소감 필드 추가
 alter table book_summaries
   add column reflection text;
+
+-- ISBN 중복 방지
+update book_summaries
+set isbn = null
+where isbn = '';
+
+create unique index book_summaries_isbn_unique
+  on book_summaries (isbn)
+  where isbn is not null;
