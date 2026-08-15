@@ -20,11 +20,9 @@ export function KeywordCard({ keyword }: { keyword: KeywordWithRelatedCount }) {
       <p className="text-xs text-neutral-500 mb-2 line-clamp-2">
         {keyword.definition}
       </p>
-      {keyword.relatedCount > 0 && (
-        <p className="text-xs text-neutral-400">
-          관련 개념 {keyword.relatedCount}
-        </p>
-      )}
+      <p className="text-xs text-neutral-400" style={{ minHeight: 16 }}>
+        {keyword.relatedCount > 0 ? `관련 개념 ${keyword.relatedCount}` : ''}
+      </p>
     </Link>
   );
 }

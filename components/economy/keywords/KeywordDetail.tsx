@@ -11,6 +11,12 @@ import { useRouter } from 'next/navigation';
 import { RelatedItems } from '../RelatedItems';
 import { RelatedItemPicker } from '../RelatedItemPicker';
 import { useQueryClient } from '@tanstack/react-query';
+import { KeywordStatusButtons } from './KeywordStatusButton';
+
+function daysSince(dateStr: string): number {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
 
 export function KeywordDetail({ keywordId }: { keywordId: string }) {
   const router = useRouter();
@@ -45,7 +51,17 @@ export function KeywordDetail({ keywordId }: { keywordId: string }) {
         </div>
       </div>
 
-      <p className="font-serif text-xl mb-4">{keyword.term}</p>
+      <p className="font-serif text-xl mb-3">{keyword.term}</p>
+
+      <div className="mb-4">
+        <KeywordStatusButtons keyword={keyword} />
+        {keyword.status === 'review' && keyword.review_marked_at && (
+          <p className="text-xs text-neutral-400 mt-1.5">
+            {daysSince(keyword.review_marked_at)}일 전 복습필요로 지정
+          </p>
+        )}
+      </div>
+
       <p className="text-sm text-neutral-700 leading-relaxed mb-6">
         {keyword.definition}
       </p>

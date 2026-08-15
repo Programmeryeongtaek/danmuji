@@ -123,3 +123,7 @@ create table news_summaries (
 );
 
 alter table news_summaries disable row level security;
+
+-- 복습 지정일 컬럼
+alter table economic_keywords
+  add column review_marked_at timestamptz;

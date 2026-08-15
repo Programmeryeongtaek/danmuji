@@ -1,15 +1,19 @@
 'use client';
 
-import { useKeyword } from '@/entities/keyword/hooks';
+import { useKeyword, useUpdateKeyword } from '@/entities/keyword/hooks';
+import { KeywordStatusButtons } from './keywords/KeywordStatusButton';
 
 export function RelatedKeywordModal({
   keywordId,
   onClose,
+  showStatusControls = false,
 }: {
   keywordId: string | null;
   onClose: () => void;
+  showStatusControls?: boolean;
 }) {
   const { data: keyword, isLoading } = useKeyword(keywordId ?? '');
+  const updateKeyword = useUpdateKeyword(keywordId ?? '');
 
   if (!keywordId) return null;
 
@@ -35,6 +39,12 @@ export function RelatedKeywordModal({
             </>
           )}
         </div>
+
+        {showStatusControls && keyword && (
+          <div className="pt-3 border-t border-neutral-100">
+            <KeywordStatusButtons keyword={keyword} />
+          </div>
+        )}
       </div>
     </div>
   );

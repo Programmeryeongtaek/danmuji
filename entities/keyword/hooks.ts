@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createKeyword, deleteKeyword, fetchKeywordById, fetchKeywordGraph, fetchKeywords, fetchKeywordsWithRelatedCount, updateKeyword } from './api';
-import { KeywordFormValues } from '@/types/keyword';
+import { KeywordUpdateValues } from '@/types/keyword';
 
 export const keywordKeys = {
   all: ["keywords"] as const,
@@ -45,10 +45,12 @@ export function useCreateKeyword() {
 export function useUpdateKeyword(keywordId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: Partial<KeywordFormValues>) => updateKeyword(keywordId, payload),
+    mutationFn: (payload: KeywordUpdateValues) => updateKeyword(keywordId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keywordKeys.detail(keywordId) });
       queryClient.invalidateQueries({ queryKey: keywordKeys.withCounts });
+      queryClient.invalidateQueries({ queryKey: ["keywords", "graph"] });
+      queryClient.invalidateQueries({ queryKey: ["keywords", "review"] });
     },
   });
 }

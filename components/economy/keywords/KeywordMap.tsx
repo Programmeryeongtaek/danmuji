@@ -2,7 +2,7 @@
 
 import { useKeywordGraph } from '@/entities/keyword/hooks';
 import { KeywordStatus } from '@/types/keyword';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { RelatedKeywordModal } from '../RelatedKeywordModal';
 
@@ -34,6 +34,28 @@ export function KeywordMap() {
   const svgRef = useRef<SVGSVGElement>(null);
   const [modalKeywordId, setModalKeywordId] = useState<string | null>(null);
 
+  // 노드/연결의 "구조"만 뽑아낸 값 — 상태(색상)가 바뀌어도 이 값 자체는 그대로라
+  // 시뮬레이션을 다시 만들 필요가 없다는 신호로 씀
+  const structuralKey = useMemo(() => {
+    if (!data) return '';
+    const nodeKey = data.nodes
+      .map((n) => n.id)
+      .sort()
+      .join(',');
+    const linkKey = data.links
+      .map((l) => [l.source, l.target].sort().join('-'))
+      .sort()
+      .join(',');
+    return `${nodeKey}|${linkKey}`;
+  }, [data]);
+
+  // 상태(색상)만 뽑아낸 값 — 이게 바뀌면 색만 갱신
+  const statusKey = useMemo(() => {
+    if (!data) return '';
+    return data.nodes.map((n) => `${n.id}:${n.status}`).join(',');
+  }, [data]);
+
+  // 시뮬레이션 구성 — 구조가 실제로 바뀔 때만 재실행
   useEffect(() => {
     if (!data || !svgRef.current) return;
 
@@ -81,6 +103,7 @@ export function KeywordMap() {
       .selectAll<SVGGElement, KeywordNode>('g')
       .data(nodes)
       .join('g')
+      .attr('data-id', (d) => d.id)
       .attr('cursor', 'pointer')
       .call(
         d3
@@ -130,7 +153,26 @@ export function KeywordMap() {
     return () => {
       simulation.stop();
     };
-  }, [data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [structuralKey]);
+
+  // 색상만 갱신 — 시뮬레이션은 건드리지 않음
+  useEffect(() => {
+    if (!data || !svgRef.current) return;
+
+    const statusById = new Map(data.nodes.map((n) => [n.id, n.status]));
+
+    d3.select(svgRef.current)
+      .selectAll<SVGGElement, unknown>('g[data-id]')
+      .select('circle')
+      .attr('fill', function () {
+        const parent = (this as SVGCircleElement).parentElement;
+        const id = parent?.getAttribute('data-id');
+        const status = id ? statusById.get(id) : undefined;
+        return status ? STATUS_COLOR[status] : '#888780';
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusKey]);
 
   if (isLoading)
     return <p className="text-sm text-neutral-400">불러오는 중...</p>;
@@ -157,6 +199,7 @@ export function KeywordMap() {
       <RelatedKeywordModal
         keywordId={modalKeywordId}
         onClose={() => setModalKeywordId(null)}
+        showStatusControls
       />
     </div>
   );
