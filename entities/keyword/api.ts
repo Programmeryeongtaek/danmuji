@@ -13,32 +13,57 @@ export interface KeywordGraphLink {
   target: string;
 }
 
+const GRAPH_BATCH_SIZE = 100;
+
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export async function fetchKeywordGraph(): Promise<{
   nodes: KeywordGraphNode[];
   links: KeywordGraphLink[];
 }> {
   const { data: keywords, error: keywordError } = await supabase
     .from("economic_keywords")
-    .select('id, term, status');
+    .select("id, term, status");
 
   if (keywordError) throw keywordError;
 
   const ids = (keywords ?? []).map((k) => k.id);
   if (ids.length === 0) return { nodes: [], links: [] };
 
-  const idList = ids.join(',');
-  const { data: links, error: linkError } = await supabase
-    .from("content_links")
-    .select('source_id, target_id, source_type, target_type')
-    .eq('source_type', 'keyword')
-    .eq('target_type', 'keyword')
-    .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
+  const batches = chunkArray(ids, GRAPH_BATCH_SIZE);
+  const allLinks: { source_id: string; target_id: string; source_type: string; target_type: string }[] = [];
 
-  if (linkError) throw linkError;
+  for (const batch of batches) {
+    const idList = batch.join(",");
+    const { data: links, error: linkError } = await supabase
+      .from("content_links")
+      .select("source_id, target_id, source_type, target_type")
+      .eq("source_type", "keyword")
+      .eq("target_type", "keyword")
+      .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
+
+    if (linkError) throw linkError;
+    allLinks.push(...(links ?? []));
+  }
+
+  // 배치를 나눠 조회하면 같은 링크가 두 번(양쪽 배치에서 각각) 잡힐 수 있어 중복 제거
+  const seen = new Set<string>();
+  const uniqueLinks = allLinks.filter((l) => {
+    const key = [l.source_id, l.target_id].sort().join("-");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   return {
     nodes: keywords ?? [],
-    links: (links ?? []).map((l) => ({ source: l.source_id, target: l.target_id })),
+    links: uniqueLinks.map((l) => ({ source: l.source_id, target: l.target_id })),
   };
 }
 
