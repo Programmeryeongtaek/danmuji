@@ -1,6 +1,8 @@
 import { supabase } from '@/shared/lib/supabase';
 import { RelatedItem, RelatedItemType } from '@/types/book';
 
+const BATCH_SIZE = 100;
+
 const TARGET_TABLE: Record<RelatedItemType, string> = {
   chapter: "book_chapters",
   keyword: "economic_keywords",
@@ -58,30 +60,33 @@ export async function fetchRelatedTermsForItems(
 ): Promise<Record<string, string[]>> {
   if (itemIds.length === 0) return {};
 
-  const idList = itemIds.join(",");
-  const { data: links, error } = await supabase
-    .from("content_links")
-    .select("source_id, target_id, source_type, target_type")
-    .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
-
-  if (error) throw error;
-  if (!links || links.length === 0) return {};
-
-  // 각 항목 id → 연결된 키워드 id 목록
   const keywordIdsByItem: Record<string, string[]> = {};
   const allKeywordIds = new Set<string>();
 
-  for (const link of links) {
-    const isSourceOurs = itemIds.includes(link.source_id);
-    const ourId = isSourceOurs ? link.source_id : link.target_id;
-    const otherType = isSourceOurs ? link.target_type : link.source_type;
-    const otherId = isSourceOurs ? link.target_id : link.source_id;
+  const batches = chunkArray(itemIds, BATCH_SIZE);
 
-    if (otherType !== "keyword") continue;
+  for (const batch of batches) {
+    const idList = batch.join(",");
+    const { data: links, error } = await supabase
+      .from("content_links")
+      .select("source_id, target_id, source_type, target_type")
+      .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
 
-    if (!keywordIdsByItem[ourId]) keywordIdsByItem[ourId] = [];
-    keywordIdsByItem[ourId].push(otherId);
-    allKeywordIds.add(otherId);
+    if (error) throw error;
+    if (!links) continue;
+
+    for (const link of links) {
+      const isSourceOurs = batch.includes(link.source_id);
+      const ourId = isSourceOurs ? link.source_id : link.target_id;
+      const otherType = isSourceOurs ? link.target_type : link.source_type;
+      const otherId = isSourceOurs ? link.target_id : link.source_id;
+
+      if (otherType !== "keyword") continue;
+
+      if (!keywordIdsByItem[ourId]) keywordIdsByItem[ourId] = [];
+      keywordIdsByItem[ourId].push(otherId);
+      allKeywordIds.add(otherId);
+    }
   }
 
   if (allKeywordIds.size === 0) return {};
@@ -103,23 +108,35 @@ export async function fetchRelatedTermsForItems(
   return result;
 }
 
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export async function fetchRelatedCounts(itemIds: string[]): Promise<Record<string, number>> {
   if (itemIds.length === 0) return {};
-
-  const idList = itemIds.join(",");
-  const { data: links, error } = await supabase
-    .from("content_links")
-    .select("source_id, target_id")
-    .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
-
-  if (error) throw error;
 
   const counts: Record<string, number> = {};
   for (const id of itemIds) counts[id] = 0;
 
-  for (const link of links ?? []) {
-    if (counts[link.source_id] !== undefined) counts[link.source_id]++;
-    if (counts[link.target_id] !== undefined) counts[link.target_id]++;
+  const batches = chunkArray(itemIds, BATCH_SIZE);
+
+  for (const batch of batches) {
+    const idList = batch.join(",");
+    const { data: links, error } = await supabase
+      .from("content_links")
+      .select("source_id, target_id")
+      .or(`source_id.in.(${idList}),target_id.in.(${idList})`);
+
+    if (error) throw error;
+
+    for (const link of links ?? []) {
+      if (counts[link.source_id] !== undefined) counts[link.source_id]++;
+      if (counts[link.target_id] !== undefined) counts[link.target_id]++;
+    }
   }
 
   return counts;
