@@ -1,5 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
-import { Keyword, KeywordFormValues, KeywordStatus, KeywordWithRelatedCount } from '@/types/keyword';
+import { Keyword, KeywordFormValues, KeywordStatus, KeywordUpdateValues, KeywordWithRelatedCount } from '@/types/keyword';
 import { deleteLinksForItem, fetchRelatedCounts } from '../economy/relatedLinks/api';
 
 export interface KeywordGraphNode {
@@ -110,11 +110,19 @@ export async function createKeyword(payload: KeywordFormValues): Promise<Keyword
 
 export async function updateKeyword(
   keywordId: string,
-  payload: Partial<KeywordFormValues>
+  payload: KeywordUpdateValues
 ): Promise<Keyword> {
+  const normalized = { ...payload };
+
+  if (payload.status === "review") {
+    normalized.review_marked_at = new Date().toISOString();
+  } else if (payload.status !== undefined) {
+    normalized.review_marked_at = null;
+  }
+
   const { data, error } = await supabase
     .from("economic_keywords")
-    .update(payload)
+    .update(normalized)
     .eq("id", keywordId)
     .select()
     .single();

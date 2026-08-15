@@ -7,6 +7,7 @@ export interface Keyword {
   definition: string;
   status: KeywordStatus;
   category: string | null;
+  review_marked_at: string | null;
   created_at: string;
 }
 
@@ -15,3 +16,5 @@ export interface KeywordWithRelatedCount extends Keyword {
 }
 
 export type KeywordFormValues = Pick<Keyword, "term" | "definition" | "status" | "category">;
+
+export type KeywordUpdateValues = Partial<Pick<Keyword, "term" | "definition" | "status" | "category" | "review_marked_at">>;
