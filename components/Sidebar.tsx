@@ -1,7 +1,13 @@
 'use client';
 
 import { NavItem, NavItemKey } from '@/types/dashboard';
-import { BarChart3, Home, NotebookText, PencilLine } from 'lucide-react';
+import {
+  BarChart3,
+  Home,
+  Languages,
+  NotebookText,
+  PencilLine,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -9,18 +15,21 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'home', label: '홈', icon: 'home' },
   { key: 'economy', label: '경제', icon: 'chart' },
   { key: 'records', label: '기록', icon: 'pencil' },
+  { key: 'language', label: '언어', icon: 'language' },
 ];
 
 const ICON_MAP = {
   home: Home,
   chart: BarChart3,
   pencil: PencilLine,
+  language: Languages,
 } as const;
 
 const HREF_MAP: Record<NavItemKey, string> = {
   home: '/',
   economy: '/economy',
   records: '/records',
+  language: '/language',
 };
 
 interface SidebarProps {
