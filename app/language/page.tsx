@@ -1,17 +1,23 @@
 'use client';
 
 import { SentenceCard } from '@/components/language/SentenceCard';
+import { SentenceForm } from '@/components/language/SentenceForm';
 import { useSentenceList, useSituationTags } from '@/entities/language/hooks';
+import { useState } from 'react';
 
 export default function LanguagePage() {
   const { data: sentences, isLoading } = useSentenceList();
   const { data: tags } = useSituationTags();
+  const [formOpen, setFormOpen] = useState(false);
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-medium">언어</h1>
-        <button className="text-sm px-3 py-1.5 border rounded-md">
+        <button
+          onClick={() => setFormOpen(true)}
+          className="text-sm px-3 py-1.5 border rounded-md"
+        >
           + 문장 추가
         </button>
       </div>
@@ -43,6 +49,8 @@ export default function LanguagePage() {
           <SentenceCard key={sentence.id} sentence={sentence} />
         ))}
       </div>
+
+      {formOpen && <SentenceForm onClose={() => setFormOpen(false)} />}
     </div>
   );
 }
