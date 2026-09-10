@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as api from './api';
-import type { SentenceInput } from '@/types/language';
+import type { SentenceInput, SentencePhrase } from '@/types/language';
 
 const SENTENCES_KEY = ['sentences'];
 const TAGS_KEY = ['situation-tags'];
@@ -71,6 +71,26 @@ export function useCreatePhrase(sentenceId: string) {
     mutationFn: ({ language, phrase, meaning }: { language: 'en' | 'zh'; phrase: string; meaning: string }) =>
       api.createSentencePhrase(sentenceId, language, phrase, meaning),
     onSuccess: () => qc.invalidateQueries({ queryKey: [...SENTENCES_KEY, sentenceId] }),
+  });
+}
+
+export function useUpdateSentencePhrase() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...fields
+    }: { id: string } & Partial<Pick<SentencePhrase, 'phrase' | 'meaning' | 'memo'>>) =>
+      api.updateSentencePhrase(id, fields),
+    onSuccess: () => qc.invalidateQueries({ queryKey: SENTENCES_KEY }),
+  });
+}
+
+export function useDeleteSentencePhrase() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteSentencePhrase(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: SENTENCES_KEY }),
   });
 }
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { PhraseCapture } from '@/components/language/PhraseCapture';
+import { PhraseList } from '@/components/language/PhraseList';
 import {
   useDeleteSentence,
   useSentenceDetail,
@@ -49,7 +51,7 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
     searchParams.get('edit') === 'true' || !!searchParams.get('add'),
   );
 
-  // lazy initializer — sentence는 이미 위에서 존재가 보장됨
+  // lazy initializer
   const [form, setForm] = useState(() => ({
     korean_sentence: sentence.korean_sentence,
     english_sentence: sentence.english_sentence ?? '',
@@ -191,7 +193,14 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
               rows={2}
             />
           ) : sentence.english_sentence ? (
-            <p className="text-[15px]">{sentence.english_sentence}</p>
+            <>
+              <PhraseCapture
+                sentenceId={sentence.id}
+                language="en"
+                text={sentence.english_sentence}
+              />
+              <PhraseList phrases={sentence.phrases ?? []} language="en" />
+            </>
           ) : (
             <button
               onClick={() => {
@@ -235,12 +244,17 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
             </div>
           ) : sentence.chinese_sentence ? (
             <>
-              <p className="text-[15px]">{sentence.chinese_sentence}</p>
+              <PhraseCapture
+                sentenceId={sentence.id}
+                language="zh"
+                text={sentence.chinese_sentence}
+              />
               {sentence.chinese_pinyin && (
                 <p className="text-[12px] text-neutral-400 mt-0.5">
                   {sentence.chinese_pinyin}
                 </p>
               )}
+              <PhraseList phrases={sentence.phrases ?? []} language="zh" />
             </>
           ) : (
             <button
