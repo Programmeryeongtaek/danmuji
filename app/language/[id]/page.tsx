@@ -4,6 +4,7 @@ import { PhraseCapture } from '@/components/language/PhraseCapture';
 import { PhraseList } from '@/components/language/PhraseList';
 import {
   useDeleteSentence,
+  usePhrasesByLanguage,
   useSentenceDetail,
   useToggleSentenceReview,
   useUpdateSentence,
@@ -46,6 +47,9 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
   const updateSentence = useUpdateSentence(id);
   const deleteSentence = useDeleteSentence();
   const toggleReview = useToggleSentenceReview();
+
+  const { data: enLibrary } = usePhrasesByLanguage('en');
+  const { data: zhLibrary } = usePhrasesByLanguage('zh');
 
   const [isEditing, setIsEditing] = useState(
     searchParams.get('edit') === 'true' || !!searchParams.get('add'),
@@ -198,6 +202,10 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
                 sentenceId={sentence.id}
                 language="en"
                 text={sentence.english_sentence}
+                libraryPhrases={enLibrary ?? []}
+                currentPhrases={(sentence.phrases ?? []).filter(
+                  (p) => p.language === 'en',
+                )}
               />
               <PhraseList phrases={sentence.phrases ?? []} language="en" />
             </>
@@ -248,6 +256,10 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
                 sentenceId={sentence.id}
                 language="zh"
                 text={sentence.chinese_sentence}
+                libraryPhrases={zhLibrary ?? []}
+                currentPhrases={(sentence.phrases ?? []).filter(
+                  (p) => p.language === 'zh',
+                )}
               />
               {sentence.chinese_pinyin && (
                 <p className="text-[12px] text-neutral-400 mt-0.5">

@@ -1,13 +1,17 @@
 'use client';
 
 import { useCreatePhrase } from '@/entities/language/hooks';
-import { BookmarkPlus, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { findPhraseMatches } from '@/entities/language/matchPhrase';
+import { SentencePhrase } from '@/types/language';
+import { BookmarkPlus, Plus, Repeat, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface PhraseCaptureProps {
   sentenceId: string;
   language: 'en' | 'zh';
   text: string;
+  libraryPhrases: SentencePhrase[]; // 같은 언어, 다른 문장들에 저장된 전체 숙어
+  currentPhrases: SentencePhrase[]; // 이 문장에 이미 저장된 숙어 (중복 추천 방지)
 }
 
 interface SelectionPopup {
@@ -19,6 +23,8 @@ export function PhraseCapture({
   sentenceId,
   language,
   text,
+  libraryPhrases,
+  currentPhrases,
 }: PhraseCaptureProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -28,6 +34,20 @@ export function PhraseCapture({
   const [meaning, setMeaning] = useState('');
 
   const createPhrase = useCreatePhrase(sentenceId);
+
+  // 이미 이 문장에 추가된 표현은 후보에서 제외
+  const currentTexts = new Set(
+    currentPhrases.map((p) => p.phrase.toLowerCase()),
+  );
+  const candidates = libraryPhrases.filter(
+    (p) =>
+      p.sentence_id !== sentenceId && !currentTexts.has(p.phrase.toLowerCase()),
+  );
+
+  const matches = useMemo(
+    () => findPhraseMatches(text, candidates, language),
+    [text, candidates, language],
+  );
 
   const closePopup = () => {
     setPopup(null);
@@ -59,19 +79,15 @@ export function PhraseCapture({
     setEditMode(false);
   };
 
-  // 바깥 클릭 또는 Esc로 취소
   useEffect(() => {
     if (!popup) return;
-
     function handleClickOutside(e: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node))
         closePopup();
-      }
     }
     function handleEscape(e: KeyboardEvent) {
       if (e.key === 'Escape') closePopup();
     }
-
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
     return () => {
@@ -90,15 +106,68 @@ export function PhraseCapture({
     closePopup();
   };
 
+  const handleAddSuggestion = (phrase: SentencePhrase) => {
+    createPhrase.mutate({
+      language,
+      phrase: phrase.phrase,
+      meaning: phrase.meaning ?? '',
+    });
+  };
+
+  // 매칭된 구간에 점선 밑줄 렌더링
+  const renderedText = useMemo(() => {
+    if (matches.length === 0) return text;
+    const nodes: React.ReactNode[] = [];
+    let cursor = 0;
+    matches.forEach((m, i) => {
+      if (m.start > cursor) nodes.push(text.slice(cursor, m.start));
+      nodes.push(
+        <span key={i} className="border-b-2 border-dashed border-amber-500">
+          {text.slice(m.start, m.end)}
+        </span>,
+      );
+      cursor = m.end;
+    });
+    if (cursor < text.length) nodes.push(text.slice(cursor));
+    return nodes;
+  }, [text, matches]);
+
   return (
     <div ref={containerRef} className="relative" onMouseUp={handleMouseUp}>
-      <p className="text-[15px] select-text leading-relaxed">{text}</p>
+      <p className="text-[15px] select-text leading-relaxed">{renderedText}</p>
+
+      {matches.length > 0 && (
+        <div className="flex flex-col gap-1 mt-2">
+          {matches.map((m) => (
+            <div
+              key={m.phrase.id}
+              className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900 rounded-md px-2.5 py-1.5"
+            >
+              <span className="flex items-center gap-1.5 text-[12px] text-neutral-500 dark:text-neutral-400">
+                <Repeat className="h-3 w-3" />
+                저장된 표현과 일치:{' '}
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  {m.phrase.phrase}
+                </span>
+              </span>
+              <button
+                onClick={() => handleAddSuggestion(m.phrase)}
+                disabled={createPhrase.isPending}
+                className="flex items-center gap-1 text-[11px] px-2 py-1 border rounded-md disabled:opacity-50"
+              >
+                <Plus className="h-3 w-3" />
+                추가
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {popup && !editMode && (
         <div
           ref={popupRef}
           style={{ left: popup.x, top: popup.y - 36 }}
-          onMouseDown={(e) => e.preventDefault()} // 클릭해도 선택이 풀리지 않게
+          onMouseDown={(e) => e.preventDefault()}
           className="absolute -translate-x-1/2 flex items-center gap-1 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-[12px] rounded-md shadow-lg z-20 whitespace-nowrap overflow-hidden"
         >
           <button
