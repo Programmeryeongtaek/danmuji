@@ -1,5 +1,6 @@
 'use client';
 
+import { SentenceCard } from '@/components/language/SentenceCard';
 import { useSentenceList, useSituationTags } from '@/entities/language/hooks';
 
 export default function LanguagePage() {
@@ -39,12 +40,7 @@ export default function LanguagePage() {
 
       <div className="flex flex-col gap-3">
         {sentences?.map((sentence) => (
-          <div
-            key={sentence.id}
-            className="border rounded-xl p-4 text-sm text-gray-400"
-          >
-            {sentence.korean_sentence}
-          </div>
+          <SentenceCard key={sentence.id} sentence={sentence} />
         ))}
       </div>
     </div>
