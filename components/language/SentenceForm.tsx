@@ -7,6 +7,7 @@ import {
 } from '@/entities/language/hooks';
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { TagPicker } from './TagPicker';
 
 interface SentenceFormProps {
   onClose: () => void;
@@ -153,14 +154,11 @@ export function SentenceForm({ onClose }: SentenceFormProps) {
 
           <div>
             <label className="text-[11px] text-neutral-400 mb-1 block">
-              메모 (선택)
+              상황 태그
             </label>
-            <textarea
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              placeholder="출처, 뉘앙스 등"
-              className="w-full text-[14px] border rounded-md p-2 resize-none"
-              rows={2}
+            <TagPicker
+              selectedTagIds={selectedTagIds}
+              onChange={setSelectedTagIds}
             />
           </div>
         </div>

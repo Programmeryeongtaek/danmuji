@@ -2,6 +2,7 @@
 
 import { PhraseCapture } from '@/components/language/PhraseCapture';
 import { PhraseList } from '@/components/language/PhraseList';
+import { TagPicker } from '@/components/language/TagPicker';
 import {
   useDeleteSentence,
   usePhrasesByLanguage,
@@ -10,7 +11,7 @@ import {
   useUpdateSentence,
 } from '@/entities/language/hooks';
 import { Sentence } from '@/types/language';
-import { ArrowLeft, Edit, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, Edit2, Plus, Trash2 } from 'lucide-react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -64,6 +65,10 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
     memo: sentence.memo ?? '',
   }));
 
+  const [selectedTagIds, setSelectedTagIds] = useState(() =>
+    sentence.tags.map((t) => t.id),
+  );
+
   const englishRef = useRef<HTMLTextAreaElement>(null);
   const chineseRef = useRef<HTMLTextAreaElement>(null);
 
@@ -84,6 +89,7 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
       chinese_sentence: form.chinese_sentence || null,
       chinese_pinyin: form.chinese_pinyin || null,
       memo: form.memo || null,
+      tag_ids: selectedTagIds,
     });
     setIsEditing(false);
     router.replace(`/language/${id}`);
@@ -97,6 +103,7 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
       chinese_pinyin: sentence.chinese_pinyin ?? '',
       memo: sentence.memo ?? '',
     });
+    setSelectedTagIds(sentence.tags.map((t) => t.id));
     setIsEditing(false);
     router.replace(`/language/${id}`);
   };
@@ -136,20 +143,28 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
       </div>
 
       <div className="flex items-center justify-between mb-3">
-        <div className="flex gap-1.5 flex-wrap">
-          {sentence.tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400"
-            >
-              {tag.name}
-            </span>
-          ))}
-          {/* 태그 편집 UI는 다음 단계에서 */}
+        <div className="flex-1">
+          {isEditing ? (
+            <TagPicker
+              selectedTagIds={selectedTagIds}
+              onChange={setSelectedTagIds}
+            />
+          ) : (
+            <div className="flex gap-1.5 flex-wrap">
+              {sentence.tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400"
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <button
           onClick={() => toggleReview.mutate({ id, isReviewed: !isReviewed })}
-          className={`text-[11px] px-2.5 py-1 rounded-full shrink-0 ${
+          className={`text-[11px] px-2.5 py-1 rounded-full shrink-0 ml-2 ${
             isReviewed
               ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
               : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'
@@ -283,22 +298,7 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
         </div>
       </div>
 
-      <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 mt-5">
-        <p className="text-[12px] text-neutral-400 mb-1.5">메모</p>
-        {isEditing ? (
-          <textarea
-            value={form.memo}
-            onChange={(e) => setForm((f) => ({ ...f, memo: e.target.value }))}
-            placeholder="메모"
-            className="w-full text-[14px] border rounded-md p-2 resize-none"
-            rows={2}
-          />
-        ) : (
-          <p className="text-[14px] text-neutral-500 dark:text-neutral-400">
-            {sentence.memo || '메모 없음'}
-          </p>
-        )}
-      </div>
+      <MemoSection sentenceId={sentence.id} memo={sentence.memo} />
 
       {isEditing && (
         <div className="flex justify-end gap-2 mt-5">
@@ -318,6 +318,72 @@ function SentenceDetailContent({ sentence }: SentenceDetailContentProps) {
       )}
 
       {/* 숙어 목록 (sentence.phrases) 은 다음 단계에서 */}
+    </div>
+  );
+}
+
+interface MemoSectionProps {
+  sentenceId: string;
+  memo: string | null;
+}
+
+function MemoSection({ sentenceId, memo }: MemoSectionProps) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(memo ?? '');
+  const updateSentence = useUpdateSentence(sentenceId);
+
+  const handleSave = async () => {
+    await updateSentence.mutateAsync({ memo: value.trim() || null });
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setValue(memo ?? '');
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 mt-5">
+        <p className="text-[12px] text-neutral-400 mb-1.5">메모</p>
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="메모"
+          className="w-full text-[14px] border rounded-md p-2 resize-none"
+          rows={2}
+          autoFocus
+        />
+        <div className="flex justify-end gap-2 mt-1.5">
+          <button onClick={handleCancel} className="text-[12px] px-2.5 py-1">
+            취소
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={updateSentence.isPending}
+            className="text-[12px] px-2.5 py-1 bg-amber-600 text-white rounded-md disabled:opacity-50"
+          >
+            저장
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 mt-5">
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[12px] text-neutral-400">메모</p>
+        <button onClick={() => setEditing(true)}>
+          <Edit2 className="h-3 w-3 text-neutral-400" />
+        </button>
+      </div>
+      <p
+        onClick={() => setEditing(true)}
+        className="text-[14px] text-neutral-500 dark:text-neutral-400 cursor-pointer"
+      >
+        {memo || '메모 없음 — 탭하여 추가'}
+      </p>
     </div>
   );
 }
