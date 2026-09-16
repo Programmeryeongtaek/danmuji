@@ -3,9 +3,12 @@
 import { SentenceCard } from '@/components/language/SentenceCard';
 import { SentenceForm } from '@/components/language/SentenceForm';
 import { useSentenceList, useSituationTags } from '@/entities/language/hooks';
+import { Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 export default function LanguagePage() {
+  const router = useRouter();
   const { data: sentences, isLoading } = useSentenceList();
   const { data: tags } = useSituationTags();
   const [formOpen, setFormOpen] = useState(false);
@@ -55,7 +58,7 @@ export default function LanguagePage() {
         className="w-full mb-4 px-3 py-2 border rounded-md text-sm dark:bg-transparent"
       />
 
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
         <button
           onClick={() => setActiveTagId(null)}
           className={`text-xs px-3 py-1 rounded-full transition-colors ${
@@ -79,6 +82,12 @@ export default function LanguagePage() {
             {tag.name}
           </button>
         ))}
+        <button
+          onClick={() => router.push('/language/tags')}
+          className="text-neutral-400 ml-1"
+        >
+          <Settings className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {isLoading && <p className="text-sm text-gray-400">불러오는 중...</p>}

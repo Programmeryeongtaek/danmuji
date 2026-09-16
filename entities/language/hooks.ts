@@ -4,6 +4,7 @@ import type { SentenceInput, SentencePhrase } from '@/types/language';
 
 const SENTENCES_KEY = ['sentences'];
 const TAGS_KEY = ['situation-tags'];
+const TAGS_WITH_COUNT_KEY = ['situation-tags-with-count'];
 
 export function useSentenceList() {
   return useQuery({ queryKey: SENTENCES_KEY, queryFn: api.fetchSentences });
@@ -98,5 +99,33 @@ export function usePhrasesByLanguage(language: 'en' | 'zh') {
   return useQuery({
     queryKey: ['phrases', language],
     queryFn: () => api.fetchPhrasesByLanguage(language),
+  });
+}
+
+export function useSituationTagsWithCount() {
+  return useQuery({ queryKey: TAGS_WITH_COUNT_KEY, queryFn: api.fetchSituationTagsWithCount });
+}
+
+export function useRenameSituationTag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string, name: string }) => api.renameSituationTag(id, name),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: TAGS_WITH_COUNT_KEY });
+      qc.invalidateQueries({ queryKey: TAGS_KEY });
+      qc.invalidateQueries({ queryKey: SENTENCES_KEY });
+    },
+  });
+}
+
+export function useDeleteSituationTag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => api.deleteSituationTag(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: TAGS_WITH_COUNT_KEY });
+      qc.invalidateQueries({ queryKey: TAGS_KEY });
+      qc.invalidateQueries({ queryKey: SENTENCES_KEY });
+    },
   });
 }
