@@ -4,6 +4,10 @@ export interface SituationTag {
   created_at: string;
 }
 
+export interface SituationTagWithCount extends SituationTag {
+  count: number;
+}
+
 export interface SentencePhrase {
   id: string;
   sentence_id: string;
