@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  useCreateSentence,
-  useCreateSituationTag,
-  useSituationTags,
-} from '@/entities/language/hooks';
+import { useCreateSentence } from '@/entities/language/hooks';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { TagPicker } from './TagPicker';
@@ -20,30 +16,8 @@ export function SentenceForm({ onClose }: SentenceFormProps) {
   const [pinyin, setPinyin] = useState('');
   const [memo, setMemo] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [newTagInput, setNewTagInput] = useState('');
 
-  const { data: tags } = useSituationTags();
   const createSentence = useCreateSentence();
-  const createTag = useCreateSituationTag();
-
-  const toggleTag = (tagId: string) => {
-    setSelectedTagIds((prev) =>
-      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId],
-    );
-  };
-
-  const handleCreateNewTag = async () => {
-    const name = newTagInput.trim();
-    if (!name) return;
-    const existing = tags?.find((t) => t.name === name);
-    if (existing) {
-      toggleTag(existing.id);
-    } else {
-      const created = await createTag.mutateAsync(name);
-      setSelectedTagIds((prev) => [...prev, created.id]);
-    }
-    setNewTagInput('');
-  };
 
   const handleSubmit = async () => {
     if (!korean.trim()) return;
@@ -116,42 +90,7 @@ export function SentenceForm({ onClose }: SentenceFormProps) {
             />
           </div>
 
-          <div>
-            <label className="text-[11px] text-neutral-400 mb-1 block">
-              상황 태그
-            </label>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {tags?.map((tag) => (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  className={`text-[11px] px-2.5 py-1 rounded-full border ${
-                    selectedTagIds.includes(tag.id)
-                      ? 'bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300'
-                      : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'
-                  }`}
-                >
-                  {tag.name}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-1.5">
-              <input
-                type="text"
-                value={newTagInput}
-                onChange={(e) => setNewTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleCreateNewTag();
-                  }
-                }}
-                placeholder="새 태그 입력 후 Enter"
-                className="flex-1 text-[13px] border rounded-md p-1.5"
-              />
-            </div>
-          </div>
-
+          {/* 상황 태그 — TagPicker 하나만 남김 */}
           <div>
             <label className="text-[11px] text-neutral-400 mb-1 block">
               상황 태그
@@ -159,6 +98,19 @@ export function SentenceForm({ onClose }: SentenceFormProps) {
             <TagPicker
               selectedTagIds={selectedTagIds}
               onChange={setSelectedTagIds}
+            />
+          </div>
+
+          <div>
+            <label className="text-[11px] text-neutral-400 mb-1 block">
+              메모 (선택)
+            </label>
+            <textarea
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="출처, 뉘앙스 등"
+              className="w-full text-[14px] border rounded-md p-2 resize-none"
+              rows={2}
             />
           </div>
         </div>
