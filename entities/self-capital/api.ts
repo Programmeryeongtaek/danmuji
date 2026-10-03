@@ -1,5 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
-import { SelfCapitalCheckWithScores, SelfCapitalItem } from '@/types/selfCapital';
+import { SelfCapitalCheckWithScores, SelfCapitalItem, SelfCapitalItemInput, SelfCapitalItemUpdate } from '@/types/selfCapital';
 
 /** 모든 문항 (숨긴 문항 포함 — 과거 점검 비교에 필요) */
 export async function fetchSelfCapitalItems(): Promise<SelfCapitalItem[]> {
@@ -30,10 +30,52 @@ export async function fetchSelfCapitalChecks(): Promise<SelfCapitalCheckWithScor
 
   if (error) throw error;
 
-  return ((data ??[]) as CheckRow[]).map(({ self_capital_scores, ...check }) => ({
+  return ((data ?? []) as CheckRow[]).map(({ self_capital_scores, ...check }) => ({
     ...check,
     scores: Object.fromEntries(
       (self_capital_scores ?? []).map((s) => [s.item_id, s.score]),
     ),
   }));
+}
+
+/** 문항 추가 (정렬은 추가한 순서 = created_at) */
+export async function createSelfCapitalItem(input: SelfCapitalItemInput): Promise<void> {
+  const { error } = await supabase
+    .from('self_capital_items')
+    .insert({ capital: input.capital, content: input.content });
+
+  if (error) throw error;
+}
+
+/** 문장 또는 자본 분류 수정 */
+export async function updateSelfCapitalItem(
+  id: string,
+  update: SelfCapitalItemUpdate,
+): Promise<void> {
+  const { error } = await supabase
+    .from('self_capital_items')
+    .update(update)
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+/** 완전 삭제 — 점수 기록이 있으면 DB가 거부함(on delete restrict) */
+export async function deleteSelfCapitalItem(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('self_capital_items')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+/** 숨기기 / 다시 보이기 */
+export async function setSelfCapitalItemActive(id: string, isActive: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('self_capital_items')
+    .update({ is_active: isActive })
+    .eq('id', id);
+
+  if (error) throw error;
 }
