@@ -1,3 +1,4 @@
+import { StockDetail } from '@/components/invest/StockDetail';
 import Link from 'next/link';
 
 type Props = {
@@ -15,11 +16,7 @@ export default async function InvestStockPage({ params }: Props) {
       >
         ← 종목 비교
       </Link>
-      <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900">
-        종목 상세
-      </h1>
-      {/* 8단계: 최근 평가 + 판단 기록 */}
-      <p className="text-sm text-stone-500">종목 ID: {stockId}</p>
+      <StockDetail stockId={stockId} />
     </div>
   );
 }
