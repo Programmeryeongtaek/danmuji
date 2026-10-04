@@ -131,10 +131,11 @@ export function useInvestEvaluations() {
   return useQuery({ queryKey: investKeys.evaluations(), queryFn: fetchEvaluations });
 }
 
-export function useStockEvaluations(stockId: string) {
+export function useStockEvaluations(stockId: string | null) {
   return useQuery({
-    queryKey: investKeys.stockEvaluations(stockId),
-    queryFn: () => fetchStockEvaluations(stockId),
+    queryKey: investKeys.stockEvaluations(stockId ?? ''),
+    queryFn: () => fetchStockEvaluations(stockId ?? ''),
+    enabled: Boolean(stockId),
   });
 }
 
