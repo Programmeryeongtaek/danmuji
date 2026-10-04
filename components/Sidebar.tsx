@@ -1,8 +1,9 @@
 'use client';
 
-import { NavItem, NavItemKey } from '@/types/dashboard';
+import { NavItem, NavItemKey } from '@/types/dashBoard';
 import {
   BarChart3,
+  Hexagon,
   Home,
   Languages,
   NotebookText,
@@ -16,6 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'economy', label: '경제', icon: 'chart' },
   { key: 'records', label: '기록', icon: 'pencil' },
   { key: 'language', label: '언어', icon: 'language' },
+  { key: 'selfCapital', label: '자기 자본', icon: 'hexagon' },
 ];
 
 const ICON_MAP = {
@@ -23,6 +25,7 @@ const ICON_MAP = {
   chart: BarChart3,
   pencil: PencilLine,
   language: Languages,
+  hexagon: Hexagon,
 } as const;
 
 const HREF_MAP: Record<NavItemKey, string> = {
@@ -30,7 +33,13 @@ const HREF_MAP: Record<NavItemKey, string> = {
   economy: '/economy',
   records: '/records',
   language: '/language',
+  selfCapital: '/self-capital',
 };
+
+const isActivePath = (pathname: string, href: string) =>
+  href === '/'
+    ? pathname === '/'
+    : pathname === href || pathname.startsWith(`${href}/`);
 
 interface SidebarProps {
   userName: string;
@@ -52,12 +61,13 @@ export function Sidebar({ userName }: SidebarProps) {
         {NAV_ITEMS.map((item) => {
           const href = HREF_MAP[item.key];
           const Icon = ICON_MAP[item.icon];
-          const isActive = pathname === href;
+          const isActive = isActivePath(pathname, href);
 
           return (
             <Link
               key={item.key}
               href={href}
+              aria-current={isActive ? 'page' : undefined}
               className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors ${
                 isActive
                   ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'
