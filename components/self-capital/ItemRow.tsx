@@ -20,7 +20,7 @@ interface ItemRowProps {
 }
 
 const actionButton =
-  'min-h-[40px] rounded-lg px-3 text-sm text-stone-600 transition-colors hover:bg-stone-100 disabled:opacity-50';
+  'min-h-10 rounded-lg px-3 text-sm text-stone-600 transition-colors hover:bg-stone-100 disabled:opacity-50';
 
 export default function ItemRow({ item, used }: ItemRowProps) {
   const inputId = useId();
@@ -73,8 +73,8 @@ export default function ItemRow({ item, used }: ItemRowProps) {
   // 숨긴 문항: 다시 보이기만 가능
   if (!item.is_active) {
     return (
-      <li className="flex min-h-13 items-center justify-between gap-3 border-b border-stone-100 py-2 last:border-b-0">
-        <span className="text-[15px] text-stone-500">{item.content}</span>
+      <li className="flex min-h-12 items-center justify-between gap-3 border-b border-stone-100 py-2 last:border-b-0">
+        <span className="text-base text-stone-500">{item.content}</span>
         <button
           type="button"
           disabled={busy}
@@ -102,7 +102,7 @@ export default function ItemRow({ item, used }: ItemRowProps) {
             if (e.key === 'Escape') setEditing(false);
           }}
           autoFocus
-          className="min-h-11 rounded-lg border border-stone-300 px-3 text-[15px] text-stone-800 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+          className="min-h-11 rounded-lg border border-stone-300 px-3 text-base text-stone-800 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
         />
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-stone-600">
@@ -121,12 +121,12 @@ export default function ItemRow({ item, used }: ItemRowProps) {
             </select>
           </label>
           {used && (
-            <span className="text-[13px] text-stone-500">
+            <span className="text-sm text-stone-500">
               점수 기록이 있어 분류는 바꿀 수 없습니다
             </span>
           )}
         </div>
-        <p className="text-[13px] text-stone-500">
+        <p className="text-sm text-stone-500">
           뜻이 달라진다면 수정 대신 새 문항으로 추가해 주세요.
         </p>
         <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ export default function ItemRow({ item, used }: ItemRowProps) {
             저장
           </button>
           {update.isError && (
-            <span role="alert" className="text-[13px] text-red-700">
+            <span role="alert" className="text-sm text-red-700">
               저장하지 못했습니다.
             </span>
           )}
@@ -158,7 +158,7 @@ export default function ItemRow({ item, used }: ItemRowProps) {
   return (
     <li className="flex min-h-14 items-center justify-between gap-3 border-b border-stone-100 py-2">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="text-[15px] text-stone-800">{item.content}</span>
+        <span className="text-base text-stone-800">{item.content}</span>
         {used && (
           <span className="shrink-0 rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
             기록 있음

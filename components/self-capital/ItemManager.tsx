@@ -27,12 +27,12 @@ export default function ItemManager() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FCFBF8] px-6 pb-18 pt-14 text-stone-800">
-      <div className="mx-auto flex max-w-190 flex-col gap-8">
+    <div className="min-h-screen bg-stone-50 px-6 pb-16 pt-14 text-stone-800">
+      <div className="mx-auto flex max-w-3xl flex-col gap-8">
         <header className="flex flex-col gap-2.5">
           <Link
             href="/self-capital"
-            className="text-[13px] text-stone-500 hover:text-stone-700"
+            className="text-sm text-stone-500 hover:text-stone-700"
           >
             ← 점검으로 돌아가기
           </Link>
@@ -62,13 +62,13 @@ export default function ItemManager() {
                 <div className="flex flex-col gap-1">
                   <h2
                     id={`capital-${capital.type}`}
-                    className="font-serif text-[22px] text-stone-900"
+                    className="font-serif text-xl text-stone-900"
                   >
                     {capital.name}
                   </h2>
                   <p className="text-sm text-stone-600">{capital.desc}</p>
                 </div>
-                <span className="shrink-0 text-[13px] text-stone-500">
+                <span className="shrink-0 text-sm text-stone-500">
                   {active.length}개
                 </span>
               </div>
@@ -93,7 +93,7 @@ export default function ItemManager() {
 
               {hidden.length > 0 && (
                 <details className="mt-4 border-t border-stone-100 pt-3">
-                  <summary className="cursor-pointer py-2 text-[13px] text-stone-500 hover:text-stone-700">
+                  <summary className="cursor-pointer py-2 text-sm text-stone-500 hover:text-stone-700">
                     숨긴 문항 {hidden.length}개
                   </summary>
                   <ul>

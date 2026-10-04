@@ -2,7 +2,7 @@
 
 import { CapitalType } from '@/types/selfCapital';
 import { deltaTone, formatDelta } from './scoreUtils';
-import { TONE_TEXT } from './Deltastyle';
+import { TONE_TEXT } from './deltaStyle';
 
 export interface CapitalNavRow {
   type: CapitalType;
@@ -24,10 +24,7 @@ export default function CapitalNav({
   onSelect,
 }: CapitalNavProps) {
   return (
-    <nav
-      aria-label="자본 목록"
-      className="flex flex-[0_0_210px] flex-col gap-1"
-    >
+    <nav aria-label="자본 목록" className="flex w-52 shrink-0 flex-col gap-1">
       {rows.map((row) => {
         const on = row.type === selected;
         return (
@@ -36,7 +33,7 @@ export default function CapitalNav({
             type="button"
             aria-pressed={on}
             onClick={() => onSelect(row.type)}
-            className={`flex min-h-13 items-center justify-between gap-2 rounded-lg px-3.5 text-left text-[15px] transition-colors ${
+            className={`flex min-h-12 items-center justify-between gap-2 rounded-lg px-3.5 text-left text-base transition-colors ${
               on
                 ? 'bg-amber-100 font-semibold text-amber-900'
                 : 'text-stone-700 hover:bg-stone-100'

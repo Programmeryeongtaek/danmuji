@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { SCORE_MAX, SCORE_MIN, SCORE_SCALE } from './constants';
 import { deltaTone, formatDelta } from './scoreUtils';
-import { TONE_BADGE, TONE_TEXT } from './Deltastyle';
+import { TONE_BADGE, TONE_TEXT } from './deltaStyle';
 export interface ScaleItem {
   id: string;
   content: string;

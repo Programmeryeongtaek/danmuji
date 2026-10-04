@@ -22,9 +22,7 @@ export default function AddItemForm({
     if (!trimmed || create.isPending) return;
     create.mutate(
       { capital, content: trimmed },
-      {
-        onSuccess: () => setContent(''),
-      },
+      { onSuccess: () => setContent('') },
     );
   };
 
@@ -42,7 +40,7 @@ export default function AddItemForm({
             if (e.key === 'Enter' && !e.nativeEvent.isComposing) submit();
           }}
           placeholder="새 문항 — 예: 꾸준히 파고드는 분야가 있다"
-          className="min-h-11 min-w-0 flex-1 rounded-lg border border-stone-300 px-3 text-[15px] text-stone-800 placeholder:text-stone-400 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
+          className="min-h-11 min-w-0 flex-1 rounded-lg border border-stone-300 px-3 text-base text-stone-800 placeholder:text-stone-400 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-700/20"
         />
         <button
           type="button"
@@ -54,7 +52,7 @@ export default function AddItemForm({
         </button>
       </div>
       {create.isError && (
-        <p role="alert" className="text-[13px] text-red-700">
+        <p role="alert" className="text-sm text-red-700">
           추가하지 못했습니다. 다시 시도해 주세요.
         </p>
       )}
