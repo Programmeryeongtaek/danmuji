@@ -1,4 +1,4 @@
-import { SummaryCard } from '@/types/dashboard';
+import { SummaryCard } from '@/types/dashBoard';
 import { BookOpen, Newspaper, PencilLine } from 'lucide-react';
 import Link from 'next/link';
 
