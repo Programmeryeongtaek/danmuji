@@ -16,9 +16,18 @@ import {
   averageScore,
   currentPeriod,
   formatPeriod,
+  formatSpan,
+  monthsBetween,
   shortPeriod,
 } from './scoreUtils';
-import { selectedCapitalAtom } from './Atoms';
+import {
+  activeHandleAtom,
+  compareEndAtom,
+  compareStartAtom,
+  NOW,
+  selectedCapitalAtom,
+} from './Atoms';
+import PeriodTimeline, { PresetOption } from './PeriodTimeLine';
 
 interface Point {
   id: string;

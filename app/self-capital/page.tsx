@@ -1,5 +1,5 @@
-import ItemManager from '@/components/self-capital/ItemManager';
+import SelfCapitalCheck from '@/components/self-capital/SelfCapitalCheck';
 
 export default function SelfCapitalPage() {
-  return <ItemManager />;
+  return <SelfCapitalCheck />;
 }
