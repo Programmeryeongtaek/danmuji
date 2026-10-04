@@ -8,7 +8,7 @@ const TABS = [
   { href: '/invest/template', label: '기준표' },
 ] as const;
 
-export default function InvestTabs() {
+export function InvestTabs() {
   const pathname = usePathname();
 
   return (

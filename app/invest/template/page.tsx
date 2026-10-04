@@ -1,4 +1,4 @@
-import InvestTabs from '@/components/invest/InvestTabs';
+import { InvestTabs } from '@/components/invest/InvestTabs';
 
 export default function InvestTemplatePage() {
   return (
