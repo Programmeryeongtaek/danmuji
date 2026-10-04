@@ -17,3 +17,6 @@ export const compareEndAtom = atom<string>(NOW);
 
 /** 타임라인 점을 눌렀을 때 바뀌는 쪽 */
 export const activeHandleAtom = atom<CompareHandle>('start');
+
+/** 균형 레이더 차트 펼침 여부 (기본은 접힘) */
+export const balanceChartOpenAtom = atom(false);

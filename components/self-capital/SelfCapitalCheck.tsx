@@ -24,6 +24,7 @@ import {
 } from './scoreUtils';
 import {
   activeHandleAtom,
+  balanceChartOpenAtom,
   compareEndAtom,
   compareStartAtom,
   NOW,
@@ -32,6 +33,7 @@ import {
 import PeriodTimeline, { PresetOption } from './PeriodTimeLine';
 import ChangeSummary from './ChangeSummary';
 import CapitalFlow, { FlowBar } from './CapitalFlow';
+import BalanceRadar from './BalanceRadar';
 
 interface Point {
   id: string;
@@ -52,6 +54,7 @@ export default function SelfCapitalCheck() {
   const [startId, setStartId] = useAtom(compareStartAtom);
   const [endId, setEndId] = useAtom(compareEndAtom);
   const [handle, setHandle] = useAtom(activeHandleAtom);
+  const [chartOpen, setChartOpen] = useAtom(balanceChartOpenAtom);
 
   /** 이번 달 작성 중인 점수. null이면 아직 손대지 않음 */
   const [draft, setDraft] = useState<ScoreMap | null>(null);
@@ -173,6 +176,10 @@ export default function SelfCapitalCheck() {
           : 'other') as FlowBar['role'],
     }))
     .slice(-FLOW_BAR_COUNT);
+
+  // 레이더: CAPITALS 순서의 자본별 평균
+  const radarValues = (scores: ScoreMap) =>
+    CAPITALS.map((c) => averageScore(itemsOf(c.type), scores));
 
   const changes = startPoint
     ? diffItems(allItems, startPoint.scores, endPoint.scores)
@@ -307,6 +314,16 @@ export default function SelfCapitalCheck() {
                     sameCount={changes.sameCount}
                   />
                 )}
+                <BalanceRadar
+                  open={chartOpen}
+                  onToggle={() => setChartOpen((v) => !v)}
+                  endValues={radarValues(endPoint.scores)}
+                  endLabel={label(endPoint)}
+                  startValues={
+                    startPoint ? radarValues(startPoint.scores) : undefined
+                  }
+                  startLabel={startPoint ? label(startPoint) : undefined}
+                />
                 <div className="flex flex-col gap-2">
                   <button
                     type="button"
