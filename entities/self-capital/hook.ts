@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createSelfCapitalItem, deleteSelfCapitalItem, fetchSelfCapitalChecks, fetchSelfCapitalItems, setSelfCapitalItemActive, updateSelfCapitalItem } from './api';
+import { createSelfCapitalItem, deleteSelfCapitalItem, fetchSelfCapitalChecks, fetchSelfCapitalItems, saveSelfCapitalCheck, setSelfCapitalItemActive, updateSelfCapitalItem } from './api';
 import { SelfCapitalItemUpdate } from '@/types/selfCapital';
 
 export const selfCapitalKeys = {
@@ -59,5 +59,14 @@ export function useSetSelfCapitalItemActive() {
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       setSelfCapitalItemActive(id, isActive),
     onSuccess: invalidate,
+  });
+}
+
+/** 점검 저장 후 점검 목록을 다시 불러옴 */
+export function useSaveSelfCapitalCheck() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: saveSelfCapitalCheck,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: selfCapitalKeys.checks() }),
   });
 }

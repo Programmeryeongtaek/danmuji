@@ -1,5 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
-import { SelfCapitalCheckWithScores, SelfCapitalItem, SelfCapitalItemInput, SelfCapitalItemUpdate } from '@/types/selfCapital';
+import { SaveCheckInput, SelfCapitalCheckWithScores, SelfCapitalItem, SelfCapitalItemInput, SelfCapitalItemUpdate } from '@/types/selfCapital';
 
 /** 모든 문항 (숨긴 문항 포함 — 과거 점검 비교에 필요) */
 export async function fetchSelfCapitalItems(): Promise<SelfCapitalItem[]> {
@@ -78,4 +78,33 @@ export async function setSelfCapitalItemActive(id: string, isActive: boolean): P
     .eq('id', id);
 
   if (error) throw error;
+}
+
+/** 월별 점검 저장 — 같은 달이면 덮어쓰기(upsert) */
+export async function saveSelfCapitalCheck(input: SaveCheckInput): Promise<string> {
+  const { data: check, error } = await supabase
+    .from('self_capital_checks')
+    .upsert(
+      { period: input.period, memo: input.memo ?? null, updated_at: new Date().toISOString() },
+      { onConflict: 'period' }, // TODO(auth): 'user_id, period'
+    )
+    .select('id')
+    .single();
+
+  if (error) throw error;
+
+  const rows = Object.entries(input.scores).map(([item_id, score]) => ({
+    check_id: check.id as string,
+    item_id,
+    score,
+  }));
+
+  if (rows.length > 0) {
+    const { error: scoreError } = await supabase
+      .from('self_capital_scores')
+      .upsert(rows, { onConflict: 'check_id, item_id' });
+    if (scoreError) throw scoreError;
+  }
+
+  return check.id as string;
 }
