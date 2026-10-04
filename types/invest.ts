@@ -72,7 +72,38 @@ export interface InvestEvaluation {
   score: number;
   verdict: Verdict;
   required_failed: boolean;
-  reason: string | null;
+reason: string | null;
   review_note: string | null;
   reviewed_at: string | null;
 }
+
+export type TemplateMetaInput = Partial<
+  Pick<InvestTemplate, 'name' | 'motto' | 'buy_threshold' | 'watch_threshold'>
+>;
+
+export type CriterionInput = Pick<
+  InvestCriterion,
+  | 'category'
+  | 'label'
+  | 'kind'
+  | 'weight'
+  | 'is_required'
+  | 'number_op'
+  | 'number_target'
+  | 'unit'
+  | 'sort_order'
+>;
+
+export type StockInput = Pick<InvestStock, 'name' | 'ticker' | 'market'>;
+
+export type EvaluationInput = Pick<
+  InvestEvaluation,
+  | 'stock_id'
+  | 'template_id'
+  | 'template_version'
+  | 'answers'
+  | 'score'
+  | 'verdict'
+  | 'required_failed'
+  | 'reason'
+>;
