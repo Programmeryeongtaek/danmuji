@@ -1,11 +1,15 @@
 'use client';
 
 import { CapitalType } from '@/types/selfCapital';
+import { deltaTone, formatDelta } from './scoreUtils';
+import { TONE_TEXT } from './Deltastyle';
 
 export interface CapitalNavRow {
   type: CapitalType;
   name: string;
   avg: number | null;
+  /** 비교 시점 대비 평균 변화. 비교할 수 없으면 null */
+  delta: number | null;
 }
 
 interface CapitalNavProps {
@@ -39,8 +43,17 @@ export default function CapitalNav({
             }`}
           >
             <span>{row.name}</span>
-            <span className="text-sm tabular-nums">
-              {row.avg === null ? '–' : row.avg.toFixed(1)}
+            <span className="flex items-baseline gap-2 tabular-nums">
+              <span className="text-sm">
+                {row.avg === null ? '–' : row.avg.toFixed(1)}
+              </span>
+              {row.delta !== null && (
+                <span
+                  className={`min-w-9 text-right text-xs font-semibold ${TONE_TEXT[deltaTone(row.delta)]}`}
+                >
+                  {formatDelta(row.delta, 1)}
+                </span>
+              )}
             </span>
           </button>
         );
