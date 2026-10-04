@@ -13,8 +13,10 @@ import { capitalMeta, CAPITALS } from './constants';
 import CapitalNav from './CapitalNav';
 import ItemScaleList from './ItemScaleList';
 import {
+  averageDelta,
   averageScore,
   currentPeriod,
+  diffItems,
   formatPeriod,
   formatSpan,
   monthsBetween,
@@ -28,6 +30,8 @@ import {
   selectedCapitalAtom,
 } from './Atoms';
 import PeriodTimeline, { PresetOption } from './PeriodTimeLine';
+import ChangeSummary from './ChangeSummary';
+import CapitalFlow, { FlowBar } from './CapitalFlow';
 
 interface Point {
   id: string;
@@ -36,6 +40,8 @@ interface Point {
 }
 
 const EMPTY: ScoreMap = {};
+/** 흐름 막대에 보여줄 최근 점검 수 */
+const FLOW_BAR_COUNT = 6;
 
 export default function SelfCapitalCheck() {
   const itemsQuery = useSelfCapitalItems();
@@ -59,7 +65,8 @@ export default function SelfCapitalCheck() {
     );
   }
 
-  const activeItems = itemsQuery.data.filter((item) => item.is_active);
+  const allItems = itemsQuery.data;
+  const activeItems = allItems.filter((item) => item.is_active);
   const checks = checksQuery.data;
 
   const period = currentPeriod();
@@ -68,7 +75,13 @@ export default function SelfCapitalCheck() {
   const savedThisMonth = checks.find((c) => c.period === period);
 
   // 이번 달 기록이 있으면 그것, 없으면 가장 최근 점검에서 출발
-  const baseScores = savedThisMonth?.scores ?? past.at(-1)?.scores ?? EMPTY;
+  // 숨긴 문항의 점수는 이번 점검에 가져오지 않음
+  const sourceScores = savedThisMonth?.scores ?? past.at(-1)?.scores ?? EMPTY;
+  const baseScores: ScoreMap = Object.fromEntries(
+    activeItems
+      .filter((item) => typeof sourceScores[item.id] === 'number')
+      .map((item) => [item.id, sourceScores[item.id]]),
+  );
   const nowScores = draft ?? baseScores;
 
   // 타임라인: 지난 점검들 + 지금
@@ -122,15 +135,14 @@ export default function SelfCapitalCheck() {
     setHandle('start');
   };
 
+  // 평균·비교는 숨긴 문항까지 포함 (각 시점에 응답한 문항만 계산에 들어감)
   const itemsOf = (type: string) =>
-    activeItems.filter((item) => item.capital === type);
+    allItems.filter((item) => item.capital === type);
 
-  const capitalDelta = (type: string) => {
-    if (!startPoint) return null;
-    const end = averageScore(itemsOf(type), endPoint.scores);
-    const start = averageScore(itemsOf(type), startPoint.scores);
-    return end !== null && start !== null ? end - start : null;
-  };
+  const capitalDelta = (type: string) =>
+    startPoint
+      ? averageDelta(itemsOf(type), startPoint.scores, endPoint.scores)
+      : null;
 
   const navRows = CAPITALS.map((c) => ({
     type: c.type,
@@ -139,7 +151,32 @@ export default function SelfCapitalCheck() {
     delta: capitalDelta(c.type),
   }));
   const meta = capitalMeta(selected);
-  const currentItems = itemsOf(selected);
+
+  // 목록: 보이는 문항 + (지난 구간을 볼 때) 그 구간에 점수가 있는 숨긴 문항
+  const listItems = itemsOf(selected).filter(
+    (item) =>
+      item.is_active ||
+      (locked &&
+        (typeof startPoint?.scores[item.id] === 'number' ||
+          typeof endPoint.scores[item.id] === 'number')),
+  );
+
+  const flowBars: FlowBar[] = points
+    .map((p, i) => ({
+      key: p.id,
+      label: short(p),
+      value: averageScore(itemsOf(selected), p.scores),
+      role: (i === endIndex
+        ? 'end'
+        : hasHistory && i === startIndex
+          ? 'start'
+          : 'other') as FlowBar['role'],
+    }))
+    .slice(-FLOW_BAR_COUNT);
+
+  const changes = startPoint
+    ? diffItems(allItems, startPoint.scores, endPoint.scores)
+    : null;
 
   const answeredCount = activeItems.filter(
     (item) => typeof nowScores[item.id] === 'number',
@@ -240,42 +277,56 @@ export default function SelfCapitalCheck() {
                 onSelect={setSelected}
               />
 
-              <ItemScaleList
-                name={meta.name}
-                desc={meta.desc}
-                avg={averageScore(currentItems, endPoint.scores)}
-                delta={capitalDelta(selected)}
-                items={currentItems.map((item) => ({
-                  id: item.id,
-                  content: item.content,
-                  from: startPoint?.scores[item.id],
-                  score: endPoint.scores[item.id],
-                }))}
-                fromLabel={startPoint ? short(startPoint) : undefined}
-                toLabel={short(endPoint)}
-                locked={locked}
-                onScore={handleScore}
-              />
+              <div className="flex min-w-0 grow basis-96 flex-col gap-6">
+                <ItemScaleList
+                  name={meta.name}
+                  desc={meta.desc}
+                  avg={averageScore(itemsOf(selected), endPoint.scores)}
+                  delta={capitalDelta(selected)}
+                  items={listItems.map((item) => ({
+                    id: item.id,
+                    content: item.content,
+                    from: startPoint?.scores[item.id],
+                    score: endPoint.scores[item.id],
+                    hidden: !item.is_active,
+                  }))}
+                  fromLabel={startPoint ? short(startPoint) : undefined}
+                  toLabel={short(endPoint)}
+                  locked={locked}
+                  onScore={handleScore}
+                />
+                {hasHistory && <CapitalFlow name={meta.name} bars={flowBars} />}
+              </div>
 
-              <aside className="flex w-72 shrink-0 flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={!canSave}
-                  className="min-h-12 rounded-lg bg-amber-700 text-base font-semibold text-white transition-colors hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {save.isPending
-                    ? '저장 중…'
-                    : savedThisMonth
-                      ? '이번 점검 다시 저장'
-                      : '이번 점검 저장'}
-                </button>
-                <p
-                  className="text-center text-sm text-stone-600"
-                  aria-live="polite"
-                >
-                  {status}
-                </p>
+              <aside className="flex w-80 shrink-0 flex-col gap-4">
+                {changes && startPoint && (
+                  <ChangeSummary
+                    title={`${label(startPoint)} → ${label(endPoint)} 변화`}
+                    ups={changes.ups}
+                    downs={changes.downs}
+                    sameCount={changes.sameCount}
+                  />
+                )}
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={!canSave}
+                    className="min-h-12 rounded-lg bg-amber-700 text-base font-semibold text-white transition-colors hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {save.isPending
+                      ? '저장 중…'
+                      : savedThisMonth
+                        ? '이번 점검 다시 저장'
+                        : '이번 점검 저장'}
+                  </button>
+                  <p
+                    className="text-center text-sm text-stone-600"
+                    aria-live="polite"
+                  >
+                    {status}
+                  </p>
+                </div>
               </aside>
             </div>
           </>

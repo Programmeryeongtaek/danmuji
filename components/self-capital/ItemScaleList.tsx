@@ -11,6 +11,8 @@ export interface ScaleItem {
   from?: number;
   /** 비교 끝점의 점수 (끝점이 '지금'이면 작성 중인 점수) */
   score?: number;
+  /** 숨긴 문항 (지난 구간을 볼 때만 목록에 나옴) */
+  hidden?: boolean;
 }
 
 interface ItemScaleListProps {
@@ -40,7 +42,7 @@ export default function ItemScaleList({
   onScore,
 }: ItemScaleListProps) {
   return (
-    <section className="flex min-w-0 grow basis-96 flex-col gap-2">
+    <section className="flex min-w-0 flex-col gap-2">
       <div className="flex items-end justify-between gap-4 border-b border-stone-200 pb-4">
         <div className="flex flex-col gap-1.5">
           <h2 className="font-serif text-2xl text-stone-900">{name}</h2>
@@ -100,7 +102,14 @@ export default function ItemScaleList({
             className="flex flex-col gap-3 border-b border-stone-100 py-5"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <p className="text-base text-stone-800">{item.content}</p>
+              <p className="text-base text-stone-800">
+                {item.content}
+                {item.hidden && (
+                  <span className="ml-2 rounded-full bg-stone-100 px-2 py-0.5 align-middle text-xs text-stone-500">
+                    숨김
+                  </span>
+                )}
+              </p>
               {comparable && (
                 <span className="inline-flex items-center gap-2.5 text-sm tabular-nums text-stone-600">
                   <span>
