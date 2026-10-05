@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import { VerdictFilter } from './VerdictFilter';
 import { CompareTable } from './CompareTable';
+import { ReviewBanner } from './ReviewBanner';
 
 export function InvestHome() {
   const [filter, setFilter] = useState<VerdictFilterValue>('all');
@@ -90,6 +91,7 @@ export function InvestHome() {
 
       {!isLoading && !isError && columns.length > 0 && (
         <>
+          <ReviewBanner columns={columns} />
           <VerdictFilter
             value={filter}
             counts={countByVerdict(columns)}

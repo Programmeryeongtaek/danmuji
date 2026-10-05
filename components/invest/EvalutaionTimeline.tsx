@@ -4,6 +4,7 @@ import { answerChanges, formatScoreDelta } from './history';
 import { formatDate } from './firnat';
 import { VerdictBadge } from './VerdictBadge';
 import { EvaluationBreakdown } from './EvaluationBreakdown';
+import { ReflectionEditor } from './ReflectionEditor';
 
 interface EvaluationTimelineProps {
   /** 최신순 전체 평가. 첫 번째(최신)는 위에서 따로 보여주므로 두 번째부터 그린다 */
@@ -115,18 +116,7 @@ function TimelineEntry({
           </ul>
         )}
 
-        {evaluation.review_note && (
-          <div className="flex flex-col gap-1.5 rounded-lg bg-neutral-50 px-4 py-3 dark:bg-neutral-950">
-            <span className="text-xs font-semibold text-neutral-500">
-              돌아보기
-              {evaluation.reviewed_at &&
-                ` · ${formatDate(evaluation.reviewed_at)}`}
-            </span>
-            <p className="text-sm leading-7 text-neutral-800 dark:text-neutral-200">
-              {evaluation.review_note}
-            </p>
-          </div>
-        )}
+        <ReflectionEditor evaluation={evaluation} />
 
         {isOpen && (
           <div id={panelId}>

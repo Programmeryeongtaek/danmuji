@@ -13,6 +13,7 @@ import { ScoreTrend } from './ScoreTrend';
 import { VerdictBadge } from './VerdictBadge';
 import { EvaluationBreakdown } from './EvaluationBreakdown';
 import { EvaluationTimeline } from './EvalutaionTimeline';
+import { NextReviewControl } from './NextReviewControl';
 
 const CARD_CLASS =
   'rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900';
@@ -93,6 +94,7 @@ export function StockDetail({ stockId }: StockDetailProps) {
             >
               다시 평가하기
             </Link>
+            <NextReviewControl stock={stock} />
           </div>
         </div>
 
