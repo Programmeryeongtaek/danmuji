@@ -1,9 +1,9 @@
-export type NavItemKey = "home" | "economy" | "records" | "language" | "selfCapital";
+export type NavItemKey = "home" | "economy" | "invest" | "records" | "language" | "selfCapital";
 
 export interface NavItem {
   key: NavItemKey;
   label: string;
-  icon: "home" | "chart" | "pencil" | "language" | "hexagon";
+  icon: "home" | "chart" | "checklist" | "pencil" | "language" | "hexagon";
 }
 
 export interface SummaryCardItem {

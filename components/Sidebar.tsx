@@ -6,6 +6,7 @@ import {
   Hexagon,
   Home,
   Languages,
+  ListChecks,
   NotebookText,
   PencilLine,
 } from 'lucide-react';
@@ -15,6 +16,7 @@ import { usePathname } from 'next/navigation';
 const NAV_ITEMS: NavItem[] = [
   { key: 'home', label: '홈', icon: 'home' },
   { key: 'economy', label: '경제', icon: 'chart' },
+  { key: 'invest', label: '투자', icon: 'checklist' },
   { key: 'records', label: '기록', icon: 'pencil' },
   { key: 'language', label: '언어', icon: 'language' },
   { key: 'selfCapital', label: '자기 자본', icon: 'hexagon' },
@@ -23,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
 const ICON_MAP = {
   home: Home,
   chart: BarChart3,
+  checklist: ListChecks,
   pencil: PencilLine,
   language: Languages,
   hexagon: Hexagon,
@@ -31,6 +34,7 @@ const ICON_MAP = {
 const HREF_MAP: Record<NavItemKey, string> = {
   home: '/',
   economy: '/economy',
+  invest: '/invest',
   records: '/records',
   language: '/language',
   selfCapital: '/self-capital',
